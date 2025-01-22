@@ -32,13 +32,12 @@ class MultipassMeas:
         self.TM_wavenum_masked = None
         self.TE_wavenum_masked = None
 
-# def fitFnLorentz(nu, nuo, kappanu, A, B):
-#     return A + (B/(2*np.pi)) * kappanu ** 2 / ((nu - nuo) ** 2 + (kappanu ** 2)/4)
+
 def fitFnLorentz(nu, nuo, kappanuhalf, A, B):
 
     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2)
 
-def fitLorentzPlot(nu_range,wavenum,alpha_ISB,axs_fits):
+def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits):
 
     mask_fit = (wavenum > nu_range[0]) & (wavenum < nu_range[1])
     alpha_ISB_select = alpha_ISB[mask_fit]
@@ -46,7 +45,6 @@ def fitLorentzPlot(nu_range,wavenum,alpha_ISB,axs_fits):
 
     #calculate the fit guesses
     nu0_guess = wavenum_fit[np.argmax(alpha_ISB_select)]
-    kappanu_guess = 60
     A_guess = alpha_ISB_select[-1]
     B_guess = np.max(alpha_ISB_select) - np.min(alpha_ISB_select)
     fitGuess = (nu0_guess, kappanu_guess, A_guess,B_guess)
@@ -67,7 +65,7 @@ def fitLorentzPlot(nu_range,wavenum,alpha_ISB,axs_fits):
     fitLorentz, trash = opt.curve_fit(fitFnLorentz, wavenum_fit, alpha_ISB_select, p0=fitGuess,
                                       bounds=fitBounds)
 
-    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},B = %0.2f [units unknown], A= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
+    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
     axs_fits.plot(wavenum, [fitFnLorentz(nu, *fitLorentz) for nu in wavenum],
                   linewidth=1,
                   label=fit_label)
@@ -197,19 +195,16 @@ axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$-\ln (\frac{I_{o
 # #do fits
 # numins = [840,1012,1700,1881]
 # numaxs = [1039,1700,1780,1910]
-numins = [840,1012,1700]
-numaxs = [1039,1700,1780]
+numins = [860,1012,1700,1881]
+numaxs = [1039,1700,1780,1910]
+kappa_nu_guesses = [35,50,10,5]
 # numins = [840,1012]
 # numaxs = [1039,1700]
 for i in range(0,len(numins)):
     nu_range = [numins[i],numaxs[i]]
-    fitLorentzPlot(nu_range, samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
+    kappa_nu_guess = kappa_nu_guesses[i]
+    fitLorentzPlot(nu_range, kappa_nu_guess,samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
 
-# cavity_plot_title = '$\lambda =$%0.2f, $\Delta f=$%0.1f' % (resonance_wavelength, kappaTot) + '\n$Q=$%i, $\eta=$%0.3f, contrast=%0.3f' % (Qfac, eta, contrast)
-# ax.set_title(cavity_plot_title, fontsize=10)
-# title = title_prefix + 'kappa tot=%0.1f, Q=%i, eta=%0.3f, contrast=%0.3f' % (kappaTot, Qfac, eta, contrast)
-# savename = np.array([title + '.svg'])[0]
-# plt.savefig(savename)
 
 axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$ ")
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
@@ -217,4 +212,6 @@ axs_fits.set_title(fit_plot_title)
 axs_fits.legend()
 plt.figure(fig_fits)
 plt.tight_layout()
+save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits' + '.svg')
+plt.savefig(save_title)
 plt.show()
