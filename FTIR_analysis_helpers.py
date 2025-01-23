@@ -32,6 +32,18 @@ class MultipassMeas:
         self.TM_wavenum_masked = None
         self.TE_wavenum_masked = None
 
+class SinglePassMeas:
+    def __init__(self, ident):
+        self.TM_single_beam = None
+        self.TE_single_beam = None
+        self.TM_wavenum = None
+        self.TE_wavenum = None
+
+        self.TM_masked = None
+        self.TE_masked = None
+        self.TM_wavenum_masked = None
+        self.TE_wavenum_masked = None
+
 
 def fitFnLorentz(nu, nuo, kappanuhalf, A, B):
     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2)
