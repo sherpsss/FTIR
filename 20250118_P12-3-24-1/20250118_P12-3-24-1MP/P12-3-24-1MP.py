@@ -55,7 +55,7 @@ bg_meas.TM_single_beam=tm_bg_single_beam
 bg_meas.TE_wavenum=te_bg_wavenum
 bg_meas.TM_wavenum=tm_bg_wavenum
 
-fig, axs = plt.subplots(1, 2, figsize=(10, 10))
+fig, axs = plt.subplots(1, 2, figsize=(14, 8))
 
 axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE',
                         color='blue')
@@ -72,10 +72,10 @@ samp_meas.TM_reshaped = samp_meas.TM_single_beam.reshape(-1,2).mean(axis=1)
 samp_meas.TE_wavenum_reshaped = samp_meas.TE_wavenum.reshape(-1,2).mean(axis=1)
 samp_meas.TM_wavenum_reshaped = samp_meas.TM_wavenum.reshape(-1,2).mean(axis=1)
 
-axs[0].plot(bg_meas.TE_wavenum, samp_meas.TE_reshaped, label= 'TE  reshaped',
-                        color='dodgerblue')
-axs[0].plot(bg_meas.TM_wavenum , samp_meas.TM_reshaped , label= 'TM  reshaped',
-                        color='sienna')
+# axs[0].plot(bg_meas.TE_wavenum, samp_meas.TE_reshaped, label= 'TE  reshaped',
+#                         color='dodgerblue')
+# axs[0].plot(bg_meas.TM_wavenum , samp_meas.TM_reshaped , label= 'TM  reshaped',
+#                         color='sienna')
 
 #now do the masking
 
@@ -90,15 +90,15 @@ mask_bg = (bg_meas.TE_wavenum > numin) & (bg_meas.TE_wavenum < numax)
 #average the signal to compare
 
 
-axs[0].set_xlabel('Wavenumber (cm^-1)')
-axs[0].set_ylabel("Single Beam")
+axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[0].set_ylabel("Single Beam",fontsize=12)
 theta_variation_title =sample_name
 axs[0].set_title(theta_variation_title)
 
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
 axs[1].set_title(fit_plot_title)
-axs[1].set_xlabel('Wavenumber (cm^-1)')
-axs[1].set_ylabel('Transmission Ratio')
+axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[1].set_ylabel('Transmission Ratio',fontsize=12)
 theta_variation_title_polarization_ratios = theta_variation_title + ' polarization ratios'
 
 samp_meas.TE_masked = samp_meas.TE_reshaped[mask_samp]
@@ -106,26 +106,31 @@ samp_meas.TM_masked = samp_meas.TM_reshaped[mask_samp]
 samp_meas.TM_wavenum_masked = samp_meas.TM_wavenum_reshaped[mask_samp]
 samp_meas.TE_wavenum_masked = samp_meas.TE_wavenum_reshaped[mask_samp]
 
-axs[1].plot(samp_meas.TE_wavenum_masked, samp_meas.TM_masked/samp_meas.TE_masked, label= 'TM/TE with sample masked reshaped',
+axs[1].plot(samp_meas.TE_wavenum_masked, samp_meas.TM_masked/samp_meas.TE_masked, label= 'TM/TE with sample masked ',
                         color='green')
-axs[1].plot(bg_meas.TE_wavenum[mask_bg], bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg], label= 'TM/TE no sample masked reshaped',
+axs[1].plot(bg_meas.TE_wavenum[mask_bg], bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg], label= 'TM/TE no sample masked ',
                         color='y')
 
 axs[0].legend()
+axs[0].legend(prop={"size":14})
 axs[1].legend()
+axs[1].legend(prop={"size":14})
+# plt.legend(["age", "number"], prop = { "size": 20 }, loc ="upper left")
 plt.tight_layout()
+save_title = os.path.join(base_dir, sample_name + 'raw data and ratios' + '.svg')
+plt.savefig(save_title)
 plt.show()
 
 #fit figure
 
-fig_fits, axs_fits = plt.subplots(figsize=(10, 10))
-axs_fits.set_xlabel('Wavenumber (cm^-1)')
+fig_fits, axs_fits = plt.subplots(figsize=(14, 8))
+axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 
 offset = np.log(bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg])
 
 alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
 
-axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",
+axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB} \times L_{path}$",
                         color='green')
 
 # #do fits
@@ -143,12 +148,19 @@ for i in range(0,len(numins)):
     # fitNormalPlot(nu_range,fitLorentzParams[0],fitLorentzParams[1],samp_meas.TE_wavenum_masked,alpha_ISB,axs_fits)
 
 
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$ ")
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path} = -\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$ [units tbd]",fontsize=12)
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 axs_fits.set_title(fit_plot_title)
 axs_fits.legend()
+axs_fits.legend(prop={"size":14})
 plt.figure(fig_fits)
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits' + '.svg')
 plt.savefig(save_title)
+# plt.xlim(numins[2],numaxs[2])
+# save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits 1740cm zoomed' + '.svg')
+# plt.savefig(save_title)
+# plt.xlim(numins[3],numaxs[3])
+# save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits 1895cm zoomed' + '.svg')
+# plt.savefig(save_title)
 plt.show()

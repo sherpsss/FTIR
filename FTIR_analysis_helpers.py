@@ -83,7 +83,9 @@ def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits):
     fitLorentz, trash = opt.curve_fit(fitFnLorentz, wavenum_fit, alpha_ISB_select, p0=fitGuess,
                                       bounds=fitBounds)
 
-    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
+    # fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
+    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[0], fitLorentz[1]*2)
+
     axs_fits.plot(wavenum, [fitFnLorentz(nu, *fitLorentz) for nu in wavenum],
                   linewidth=1,
                   label=fit_label)
