@@ -27,19 +27,20 @@ numin = 785
 base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250122_P530-A-SP'
 
 angles = [230,240,250]
+angle0 = 280
 
 #raw data plots
 fig, axs = plt.subplots(1, 2, figsize=(14, 8))
 
-axs[0].set_xlabel('Wavenumber (cm^-1)')
-axs[0].set_ylabel("Single Beam")
+axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[0].set_ylabel("Single Beam",fontsize=12)
 theta_variation_title =sample_name + ' Raw data'
 axs[0].set_title(theta_variation_title)
 
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
 axs[1].set_title(fit_plot_title)
-axs[1].set_xlabel('Wavenumber (cm^-1)')
-axs[1].set_ylabel('Transmission Ratio')
+axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[1].set_ylabel('Transmission Ratio',fontsize=12)
 
 tm_bg_file = os.path.join(base_dir, 'no_samp_P0deg' + '.CSV')
 te_bg_file = os.path.join(base_dir, 'no_samp_P90deg' + '.CSV')
@@ -71,8 +72,8 @@ axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
 
 #absorption fit plot
 fig_fits, axs_fits = plt.subplots(figsize=(12, 8))
-axs_fits.set_xlabel('Wavenumber (cm^-1)')
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$")
+axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
 fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 axs_fits.set_title(fit_plot_title)
 
@@ -86,6 +87,7 @@ for i in range(0,len(angles)):
     te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
     _, tm_wavenum, tm_single_beam, _ = load_data(tm_file)
     _, te_wavenum, te_single_beam, _ = load_data(te_file)
+    angle = angle0-angle
     angle_meas = SinglePassMeas(ident=str(angle))
     angle_meas.TM_wavenum = tm_wavenum
     angle_meas.TE_wavenum = te_wavenum
@@ -155,7 +157,9 @@ for i in range(0,len(angles)):
 #
 plt.figure(fig)
 axs[0].legend()
+axs[0].legend(prop={"size":14})
 axs[1].legend()
+axs[1].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
@@ -185,6 +189,7 @@ plt.savefig(save_title)
 #
 plt.figure(fig_fits)
 axs_fits.legend()
+axs_fits.legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')
 plt.savefig(save_title)
