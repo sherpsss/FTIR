@@ -9,7 +9,13 @@ from FTIR_analysis_helpers import MultipassMeas
 from FTIR_analysis_helpers import load_data
 from FTIR_analysis_helpers import fitLorentzPlot
 
+def normalize(arr):
+    amp = np.max(arr)-np.min(arr)
+    yzerod = arr-np.min(arr)
+    return yzerod/amp
+
 sample_name = 'P530-A-MP'
+wafername = 'P530'
 Lsample = 10 #mm
 # angle_of_incidence = 45
 sample_thick = 0.5 #mm
@@ -21,6 +27,9 @@ Lpath = epi_path*Nbounces
 
 numax = 3100
 numin = 750
+
+blues = ['cornflowerblue','mediumblue','blue']
+reds = ['crimson','m','magenta']
 
 #adjust with well thicknesses based on Lodo runsheet
 
@@ -40,37 +49,35 @@ samp_meas.TE_wavenum = te_wavenum
 samp_meas.TM_single_beam = tm_single_beam
 samp_meas.TE_single_beam = te_single_beam
 
-# background_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20241211_theta_i_sweep_singlepass_342A/backgrounds'
-# bg_name = 'no_samp'
-# bg_meas = MultipassMeas(samp=bg_name)
+SP_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250122_P530-A-SP'
+SP_name = 'SP 230 deg'
+SP_meas = MultipassMeas(samp=SP_name)
 #
-# tm_bg_file = os.path.join(background_dir, 'background_P0deg' + '.CSV')
-# te_bg_file = os.path.join(background_dir, 'background_P90deg' + '.CSV')
-#
-# _, tm_bg_wavenum, tm_bg_single_beam, _ = load_data(tm_bg_file)
-# _, te_bg_wavenum, te_bg_single_beam, _ = load_data(te_bg_file)
-#
-# bg_meas.TE_single_beam=te_bg_single_beam
-# bg_meas.TM_single_beam=tm_bg_single_beam
-# bg_meas.TE_wavenum=te_bg_wavenum
-# bg_meas.TM_wavenum=tm_bg_wavenum
+tm_sp_file = os.path.join(SP_dir, 'P530-SP-rot230deg-P0deg' + '.CSV')
+te_sp_file = os.path.join(SP_dir, 'P530-SP-rot230deg-P90deg' + '.CSV')
+
+_, tm_sp_wavenum, tm_sp_single_beam, _ = load_data(tm_sp_file)
+_, te_sp_wavenum, te_sp_single_beam, _ = load_data(te_sp_file)
+
+SP_meas.TE_single_beam=te_sp_single_beam
+SP_meas.TM_single_beam=tm_sp_single_beam
+SP_meas.TE_wavenum=te_sp_wavenum
+SP_meas.TM_wavenum=tm_sp_wavenum
 
 fig, axs = plt.subplots(1, 2, figsize=(14, 8))
 
-axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE',
-                        color='blue')
-axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM',
-                        color='red')
+axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE MP',color=blues[0])
+# axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM MP', color=reds[0])
 
-# axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE bg ' + bg_name,
-#                         color='c')
-# axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label= 'TM bg' + bg_name,
-#                         color='m')
+axs[0].plot(SP_meas.TE_wavenum, SP_meas.TE_single_beam, label= 'TE ' + SP_name,color=blues[1])
+# axs[0].plot(SP_meas.TM_wavenum , SP_meas.TM_single_beam , label= 'TM ' + SP_name,color=reds[1])
 
-# samp_meas.TE_reshaped = samp_meas.TE_single_beam.reshape(-1,2).mean(axis=1)
-# samp_meas.TM_reshaped = samp_meas.TM_single_beam.reshape(-1,2).mean(axis=1)
-# samp_meas.TE_wavenum_reshaped = samp_meas.TE_wavenum.reshape(-1,2).mean(axis=1)
-# samp_meas.TM_wavenum_reshaped = samp_meas.TM_wavenum.reshape(-1,2).mean(axis=1)
+
+axs[1].plot(samp_meas.TE_wavenum, normalize(samp_meas.TE_single_beam), label= 'TE',color=blues[0])
+# axs[1].plot(samp_meas.TM_wavenum , normalize(samp_meas.TM_single_beam) , label= 'TM',color=reds[0])
+
+axs[1].plot(SP_meas.TE_wavenum, normalize(SP_meas.TE_single_beam), label= 'TE ' + SP_name, color=blues[1])
+# axs[1].plot(SP_meas.TM_wavenum , normalize(SP_meas.TM_single_beam) , label= 'TM ' + SP_name,  color=reds[1])
 
 # axs[0].plot(bg_meas.TE_wavenum, samp_meas.TE_reshaped, label= 'TE  reshaped',
 #                         color='dodgerblue')
@@ -92,13 +99,16 @@ axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM',
 
 axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[0].set_ylabel("Single Beam",fontsize=12)
-theta_variation_title =sample_name
+# theta_variation_title =sample_name + ' compared to ' + SP_name
+theta_variation_title = wafername + ' multipass vs. single pass'
 axs[0].set_title(theta_variation_title)
 #
+fit_plot_title = theta_variation_title + ' norms'
 # fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
-# axs[1].set_title(fit_plot_title)
-# axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-# axs[1].set_ylabel('Transmission Ratio',fontsize=12)
+
+axs[1].set_title(fit_plot_title)
+axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[1].set_ylabel('Normalized by peak absorption',fontsize=12)
 # theta_variation_title_polarization_ratios = theta_variation_title + ' polarization ratios'
 #
 # samp_meas.TE_masked = samp_meas.TE_reshaped[mask_samp]
@@ -113,54 +123,8 @@ axs[0].set_title(theta_variation_title)
 
 axs[0].legend()
 axs[0].legend(prop={"size":14})
-# axs[1].legend()
-# axs[1].legend(prop={"size":14})
-# plt.legend(["age", "number"], prop = { "size": 20 }, loc ="upper left")
+
 plt.tight_layout()
-save_title = os.path.join(base_dir, sample_name + 'raw data' + '.svg')
+save_title = os.path.join(base_dir, sample_name + ' TE raw data' + '.svg')
 plt.savefig(save_title)
 plt.show()
-
-# #fit figure
-#
-# fig_fits, axs_fits = plt.subplots(figsize=(14, 8))
-# axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-#
-# offset = np.log(bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg])
-#
-# alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
-#
-# axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB} \times L_{path}$",
-#                         color='green')
-#
-# # #do fits
-# # numins = [840,1012,1700,1881]
-# # numaxs = [1039,1700,1780,1910]
-# numins = [860,1012,1700,1881]
-# numaxs = [1039,1700,1780,1910]
-# kappa_nu_guesses = [35,50,10,5]
-# # numins = [840,1012]
-# # numaxs = [1039,1700]
-# for i in range(0,len(numins)):
-#     nu_range = [numins[i],numaxs[i]]
-#     kappa_nu_guess = kappa_nu_guesses[i]
-#     fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
-#     # fitNormalPlot(nu_range,fitLorentzParams[0],fitLorentzParams[1],samp_meas.TE_wavenum_masked,alpha_ISB,axs_fits)
-#
-#
-# axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path} = -\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$ [units tbd]",fontsize=12)
-# fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-# axs_fits.set_title(fit_plot_title)
-# axs_fits.legend()
-# axs_fits.legend(prop={"size":14})
-# plt.figure(fig_fits)
-# plt.tight_layout()
-# save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits' + '.svg')
-# plt.savefig(save_title)
-# # plt.xlim(numins[2],numaxs[2])
-# # save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits 1740cm zoomed' + '.svg')
-# # plt.savefig(save_title)
-# # plt.xlim(numins[3],numaxs[3])
-# # save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits 1895cm zoomed' + '.svg')
-# # plt.savefig(save_title)
-# plt.show()
