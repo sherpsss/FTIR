@@ -11,8 +11,12 @@ ap = 20
 gain = 2
 Fout = 0.78 #fresnel coefficient in
 Fin = Fout
-tsamp = 0.4 #mm
 nu_ISB = 1120
+
+Lsample = 10 #mm
+tsamp = 0.4 #mm
+Nbounces = Lsample/tsamp
+Lpath = np.sqrt(2)*Nbounces*tsamp
 
 settings_suffix = 'ap-'+str(ap)+'-gain-'+str(gain)
 
@@ -73,10 +77,16 @@ axs_fits.set_title(fit_plot_title)
 
 #absorption per pass plot
 fig_abs, axs_abs = plt.subplots(1,2,figsize=(12, 8))
-axs_abs.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_abs.set_ylabel(r"$\alpha = \frac{-\ln(\frac{I_{out}}{I_{in}} \frac{1}{F_{in} \times F_{out}})}{t_{samp}} $",fontsize=12)
-fit_abs_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-axs_abs.set_title(fit_abs_plot_title)
+axs_abs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs_abs[0].set_ylabel(r"$\alpha = \frac{-\ln(\frac{I_{out}}{I_{in}} \frac{1}{F_{in} \times F_{out}})}{t_{samp}} $",fontsize=12)
+fit_abs_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r", $t_{samp} = $" + str(tsamp) + " mm"
+axs_abs[0].set_title(fit_abs_plot_title)
+
+axs_abs[1].set_xlabel(r"path length [mm]",fontsize=12)
+axs_abs[1].set_ylabel(r"Transmission fraction per sample path length ",fontsize=12)
+
+alpha_nu0_TE = 0 # per mm
+alpha_nu0_TM = 0 #place holders to be filled in later
 
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
 reds = ['mediumvioletred','deeppink','hotpink','pink']
@@ -118,8 +128,19 @@ for i in range(0,len(angles)):
     axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
                             color=reds[i])
 
-    axs_abs[0].plot(angle_meas.TE_wavenum_masked,-np.log((angle_meas.TE_masked/bg_meas.TE_masked)/(Fin*Fout))/tsamp,label='TE' + str(angle) + '$\degree$')
-    axs_abs[0].plot(angle_meas.TM_wavenum_masked, -np.log((angle_meas.TM_masked / bg_meas.TM_masked)/(Fin*Fout))/tsamp,label='TM' + str(angle) + '$\degree$')
+    alpha_samp_TE = -np.log((angle_meas.TE_masked/bg_meas.TE_masked)/(Fin*Fout))/tsamp
+    alpha_samp_TM = -np.log((angle_meas.TM_masked / bg_meas.TM_masked)/(Fin*Fout))/tsamp
+    idx_closest = np.abs(angle_meas.TE_wavenum_masked - nu_ISB).argmin()
+
+    axs_abs[0].plot(angle_meas.TE_wavenum_masked,alpha_samp_TE,label='TE' + str(angle) + '$\degree$',color=reds[i])
+    axs_abs[0].plot(angle_meas.TM_wavenum_masked, alpha_samp_TM,label='TM' + str(angle) + '$\degree$',color=blues[i])
+
+    alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
+    alpha_nu0_TM = alpha_samp_TM[idx_closest]
+
+    pathlens = np.linspace(0.0,Lpath,num=50)#per mm
+    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label='TM',color=reds[i])
+    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label='TE',color=blues[i])
 
     #transmission per length at 1120 cm^-1
 
@@ -142,8 +163,15 @@ save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')
 plt.savefig(save_title)
 
 plt.figure(fig_abs)
-axs_abs.legend()
-axs_abs.legend(prop={"size":14})
+fit_abs_plot_title = r"$\alpha(\nu = $" + str(nu_ISB) + r")"
+axs_abs[1].set_title(fit_abs_plot_title)
+
+axs_abs[0].grid(True)
+axs_abs[1].grid(True)
+axs_abs[0].legend()
+axs_abs[0].legend(prop={"size":14})
+axs_abs[1].legend()
+axs_abs[1].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'transmissions' + '.svg')
 plt.savefig(save_title)
