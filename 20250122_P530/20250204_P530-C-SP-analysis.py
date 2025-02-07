@@ -28,7 +28,7 @@ angles = [0]
 # angle0 = 280
 
 #raw data plots
-fig, axs = plt.subplots(1, 2, figsize=(14, 8))
+fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
 axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[0].set_ylabel("Single Beam",fontsize=12)
@@ -39,6 +39,11 @@ fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(n
 axs[1].set_title(fit_plot_title)
 axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[1].set_ylabel('Transmission Ratio',fontsize=12)
+
+raw_ratio_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1} Samp vs. bg$"
+axs[2].set_title(raw_ratio_title)
+axs[2].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[2].set_ylabel('Raw Transmission Ratios',fontsize=12)
 
 tm_bg_file = os.path.join(base_dir, 'bg-P0deg-' + settings_suffix + '.CSV')
 te_bg_file = os.path.join(base_dir, 'bg-P90deg-' + settings_suffix + '.CSV')
@@ -120,6 +125,11 @@ for i in range(0,len(angles)):
     axs[1].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/angle_meas.TE_masked, label= 'TM/TE '+str(angle) + '$\degree$',
                             color=reds[i])
 
+    axs[2].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/bg_meas.TM_masked, label= 'samp TM '+str(angle) + '$\degree $ / TM background' ,
+                            color=reds[i])
+    axs[2].plot(angle_meas.TE_wavenum_masked, angle_meas.TE_masked/bg_meas.TE_masked, label= 'samp TE '+str(angle) + '$\degree $ / TE background' ,
+                            color=blues[i])
+
     #calculate the absorption coefficient times path length
 
     offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
@@ -130,17 +140,19 @@ for i in range(0,len(angles)):
 
     alpha_samp_TE = -np.log((angle_meas.TE_masked/bg_meas.TE_masked)/(Fin*Fout))/tsamp
     alpha_samp_TM = -np.log((angle_meas.TM_masked / bg_meas.TM_masked)/(Fin*Fout))/tsamp
-    idx_closest = np.abs(angle_meas.TE_wavenum_masked - nu_ISB).argmin()
+    nuISBs_check = [0.95*nu_ISB,nu_ISB,1.05*nu_ISB]
 
     axs_abs[0].plot(angle_meas.TE_wavenum_masked,alpha_samp_TE,label='TE' + str(angle) + '$\degree$',color=reds[i])
     axs_abs[0].plot(angle_meas.TM_wavenum_masked, alpha_samp_TM,label='TM' + str(angle) + '$\degree$',color=blues[i])
+    for nuISB_ind in range(0,len(nuISBs_check)):
+        nuISB_check = nuISBs_check[nuISB_ind]
+        idx_closest = np.abs(angle_meas.TE_wavenum_masked - nuISB_check).argmin()
 
-    alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
-    alpha_nu0_TM = alpha_samp_TM[idx_closest]
-
-    pathlens = np.linspace(0.0,Lpath,num=50)#per mm
-    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label='TM',color=reds[i])
-    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label='TE',color=blues[i])
+        alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
+        alpha_nu0_TM = alpha_samp_TM[idx_closest]
+        pathlens = np.linspace(0.0,Lpath,num=50)#per mm
+        axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label=r"$TM, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=reds[nuISB_ind])
+        axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label=r"$TE, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=blues[nuISB_ind])
 
     #transmission per length at 1120 cm^-1
 
@@ -150,6 +162,8 @@ axs[0].legend()
 axs[0].legend(prop={"size":14})
 axs[1].legend()
 axs[1].legend(prop={"size":14})
+axs[2].legend()
+axs[2].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)

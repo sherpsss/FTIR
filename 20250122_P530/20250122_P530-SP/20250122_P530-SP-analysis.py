@@ -30,7 +30,7 @@ angles = [230,240,250]
 angle0 = 280
 
 #raw data plots
-fig, axs = plt.subplots(1, 2, figsize=(14, 8))
+fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
 axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[0].set_ylabel("Single Beam",fontsize=12)
@@ -41,6 +41,11 @@ fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(n
 axs[1].set_title(fit_plot_title)
 axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[1].set_ylabel('Transmission Ratio',fontsize=12)
+
+fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1} Samp vs. bg$"
+axs[2].set_title(fit_plot_title)
+axs[2].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs[2].set_ylabel('Raw Transmission Ratios',fontsize=12)
 
 tm_bg_file = os.path.join(base_dir, 'no_samp_P0deg' + '.CSV')
 te_bg_file = os.path.join(base_dir, 'no_samp_P90deg' + '.CSV')
@@ -109,6 +114,11 @@ for i in range(0,len(angles)):
     axs[1].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/angle_meas.TE_masked, label= 'TM/TE '+str(angle) + '$\degree$',
                             color=reds[i])
 
+    axs[2].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/bg_meas.TM_masked, label= 'samp TM '+str(angle) + '$\degree $ / TM background' ,
+                            color=reds[i])
+    axs[2].plot(angle_meas.TE_wavenum_masked, angle_meas.TE_masked/bg_meas.TE_masked, label= 'samp TE '+str(angle) + '$\degree $ / TE background' ,
+                            color=blues[i])
+
     #calculate the absorption coefficient times path length
 
     offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
@@ -171,6 +181,8 @@ axs[0].legend()
 axs[0].legend(prop={"size":14})
 axs[1].legend()
 axs[1].legend(prop={"size":14})
+axs[2].legend()
+axs[2].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
