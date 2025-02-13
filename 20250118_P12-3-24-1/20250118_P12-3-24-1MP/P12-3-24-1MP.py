@@ -19,7 +19,7 @@ Nperiods = 29
 epi_path = np.sqrt(2)*Nperiods*well_period
 Lpath = epi_path*Nbounces
 
-numax = 3100
+numax = 1713
 numin = 750
 
 #adjust with well thicknesses based on Lodo runsheet
@@ -119,26 +119,29 @@ axs[1].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw data and ratios' + '.svg')
 plt.savefig(save_title)
-plt.show()
+# plt.show()
 
 #fit figure
 
-fig_fits, axs_fits = plt.subplots(figsize=(14, 8))
-axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+fig_fits, axs_fits = plt.subplots(figsize=(10, 8))
+axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=14)
 
 offset = np.log(bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg])
 
-alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
+alpha_ISB= (-np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset)/Nperiods
 
-axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB} \times L_{path}$",
+axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB}$ per well",
                         color='green')
 
 # #do fits
 # numins = [840,1012,1700,1881]
 # numaxs = [1039,1700,1780,1910]
-numins = [860,1012,1700,1881]
-numaxs = [1039,1700,1780,1910]
-kappa_nu_guesses = [35,50,10,5]
+# numins = [860,1012,1700,1881]
+# numaxs = [1039,1700,1780,1910]
+# kappa_nu_guesses = [35,50,10,5]
+numins = [860,1012]
+numaxs = [1039,1700]
+kappa_nu_guesses = [35,50]
 # numins = [840,1012]
 # numaxs = [1039,1700]
 for i in range(0,len(numins)):
@@ -148,12 +151,17 @@ for i in range(0,len(numins)):
     # fitNormalPlot(nu_range,fitLorentzParams[0],fitLorentzParams[1],samp_meas.TE_wavenum_masked,alpha_ISB,axs_fits)
 
 
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path} = -\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$ [units tbd]",fontsize=12)
-fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
+axs_fits.set_ylabel(r"$\alpha_{ISB}$ per well",fontsize=14)
+axs_fits.tick_params(axis='x',labelsize=12)
+axs_fits.tick_params(axis='y',labelsize=12)
+# fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
+fit_plot_title = "Example Sample Absorption Measured via FTIR Multipass"
 axs_fits.set_title(fit_plot_title)
 axs_fits.legend()
 axs_fits.legend(prop={"size":14})
 plt.figure(fig_fits)
+# plt.yticks(fontsize=20)
+# plt.xticks(fontisze=20)
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits' + '.svg')
 plt.savefig(save_title)
@@ -163,4 +171,7 @@ plt.savefig(save_title)
 # plt.xlim(numins[3],numaxs[3])
 # save_title = os.path.join(base_dir, sample_name + 'Lorentzian fits 1895cm zoomed' + '.svg')
 # plt.savefig(save_title)
+plt.figure(fig_fits)
+plt.show()
+plt.figure(fig)
 plt.show()

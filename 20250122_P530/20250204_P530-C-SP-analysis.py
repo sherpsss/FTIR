@@ -14,9 +14,11 @@ Fin = Fout
 nu_ISB = 1120
 
 Lsample = 10 #mm
-tsamp = 0.4 #mm
+tsamp = np.mean([0.416,0.427]) #mm
 Nbounces = Lsample/tsamp
-Lpath = np.sqrt(2)*Nbounces*tsamp
+# Lpath = np.sqrt(2)*Nbounces*tsamp
+Lpath = 14
+
 
 settings_suffix = 'ap-'+str(ap)+'-gain-'+str(gain)
 

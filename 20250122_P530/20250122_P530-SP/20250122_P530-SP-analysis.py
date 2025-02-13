@@ -77,10 +77,15 @@ axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
 
 #absorption fit plot
 fig_fits, axs_fits = plt.subplots(figsize=(12, 8))
-axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
-fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-axs_fits.set_title(fit_plot_title)
+axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=14)
+# axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$",fontsize=14)
+# fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
+fit_plot_title = "Complex Multi-Quantum Well Sample Absorption Measured in Single Pass"
+
+axs_fits.set_title(fit_plot_title,fontsize=16)
+axs_fits.tick_params(axis='x',labelsize=12)
+axs_fits.tick_params(axis='y',labelsize=12)
 
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
 reds = ['mediumvioletred','deeppink','hotpink','pink']

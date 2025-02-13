@@ -14,9 +14,10 @@ Fin = Fout
 nu_ISB = 1120
 
 Lsample = 10 #mm
-tsamp = 0.5 #mm
+tsamp = np.mean([0.603,0.622,0.634]) #mm
 Nbounces = Lsample/tsamp
 Lpath = np.sqrt(2)*Nbounces*tsamp
+Lpath = 14
 
 settings_suffix = 'ap-'+str(ap)+'-gain-'+str(gain)
 
@@ -135,12 +136,17 @@ for i in range(0,len(angles)):
     axs_abs[0].plot(angle_meas.TE_wavenum_masked,alpha_samp_TE,label='TE' + str(angle) + '$\degree$',color=reds[i])
     axs_abs[0].plot(angle_meas.TM_wavenum_masked, alpha_samp_TM,label='TM' + str(angle) + '$\degree$',color=blues[i])
 
-    alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
-    alpha_nu0_TM = alpha_samp_TM[idx_closest]
+    nuISBs_check = [0.95*nu_ISB,nu_ISB,1.05*nu_ISB]
 
-    pathlens = np.linspace(0.0,Lpath,num=50)#per mm
-    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label='TM',color=reds[i])
-    axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label='TE',color=blues[i])
+    for nuISB_ind in range(0,len(nuISBs_check)):
+        nuISB_check = nuISBs_check[nuISB_ind]
+        idx_closest = np.abs(angle_meas.TE_wavenum_masked - nuISB_check).argmin()
+
+        alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
+        alpha_nu0_TM = alpha_samp_TM[idx_closest]
+        pathlens = np.linspace(0.0,Lpath,num=50)#per mm
+        axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label=r"$TM, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=reds[nuISB_ind])
+        axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label=r"$TE, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=blues[nuISB_ind])
 
     #transmission per length at 1120 cm^-1
 
