@@ -90,6 +90,10 @@ axs_fits.tick_params(axis='y',labelsize=12)
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
 reds = ['mediumvioletred','deeppink','hotpink','pink']
 
+numins = [1042,1042,1042]
+numaxs = [1272,1272,1272]
+kappa_nu_guesses = [30]
+
 for i in range(0,len(angles)):
     angle = angles[i]
     angle_filename = sample_name + '-SP-rot'+ str(angle)+'deg-'
@@ -131,6 +135,11 @@ for i in range(0,len(angles)):
     alpha_ISB= -np.log(angle_meas.TM_masked/angle_meas.TE_masked)+offset
     axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
                             color=reds[i])
+
+    # do the fit
+    nu_range = [numins[i],numaxs[i]]
+    kappa_nu_guess = kappa_nu_guesses[0]
+    fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
 
 #get the 0 deg one in there
 special_filename = 'P530-SP-top-chip'
@@ -201,9 +210,9 @@ plt.savefig(save_title)
 # axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",
 #                         color='green')
 #
-# # #do fits
-# # numins = [840,1012,1700,1881]
-# # numaxs = [1039,1700,1780,1910]
+# #do fits
+# numins = [840,1012,1700,1881]
+# numaxs = [1039,1700,1780,1910]
 # numins = [860,1012,1700,1881]
 # numaxs = [1039,1700,1780,1910]
 # kappa_nu_guesses = [35,50,10,5]
