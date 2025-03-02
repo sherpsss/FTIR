@@ -75,23 +75,29 @@ bg_meas.TE_wavenum_masked = bg_meas.TE_wavenum[mask_samp]
 axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
             label='TM/TE no sample', color='y')
 
+axislabelsfont=30
+legendfont=30
+ticksize=30
+titlesize=34
+
 #absorption fit plot
 fig_fits, axs_fits = plt.subplots(figsize=(12, 8))
-axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=14)
+axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=axislabelsfont)
 # axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$",fontsize=14)
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$",fontsize=axislabelsfont)
 # fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-fit_plot_title = "Complex Multi-Quantum Well Sample Absorption Measured in Single Pass"
+fit_plot_title = "Complex Multi-Quantum Well Sample Absorption"
 
-axs_fits.set_title(fit_plot_title,fontsize=16)
-axs_fits.tick_params(axis='x',labelsize=12)
-axs_fits.tick_params(axis='y',labelsize=12)
+axs_fits.set_title(fit_plot_title,fontsize=titlesize)
+axs_fits.tick_params(axis='x',labelsize=ticksize)
+axs_fits.tick_params(axis='y',labelsize=ticksize)
 
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
 reds = ['mediumvioletred','deeppink','hotpink','pink']
 
 numins = [1042,1042,1042]
 numaxs = [1272,1272,1272]
+nuplot_range =[1000,1272]
 kappa_nu_guesses = [30]
 
 for i in range(0,len(angles)):
@@ -139,7 +145,7 @@ for i in range(0,len(angles)):
     # do the fit
     nu_range = [numins[i],numaxs[i]]
     kappa_nu_guess = kappa_nu_guesses[0]
-    fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
+    # fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits,nu_fit_plot_range=nuplot_range)
 
 #get the 0 deg one in there
 special_filename = 'P530-SP-top-chip'
@@ -226,7 +232,7 @@ plt.savefig(save_title)
 #
 plt.figure(fig_fits)
 axs_fits.legend()
-axs_fits.legend(prop={"size":14})
+axs_fits.legend(prop={"size":legendfont})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')
 plt.savefig(save_title)

@@ -57,7 +57,7 @@ def maskFit(nu_range,wavenum,alpha_ISB):
     wavenum_fit = wavenum[mask_fit]
     return alpha_ISB_select,wavenum_fit
 
-def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits):
+def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits,nu_fit_plot_range=None):
 
     alpha_ISB_select,wavenum_fit = maskFit(nu_range,wavenum,alpha_ISB)
 
@@ -84,9 +84,13 @@ def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits):
                                       bounds=fitBounds)
 
     # fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
-    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[0], fitLorentz[1]*2)
+    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}$" % (fitLorentz[0]) + "\n" + r"$\Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[1]*2)
 
-    axs_fits.plot(wavenum, [fitFnLorentz(nu, *fitLorentz) for nu in wavenum],
+    if nu_fit_plot_range is None:
+        nu_fit_plot= wavenum
+    else:
+        trash,nu_fit_plot=maskFit(nu_fit_plot_range,wavenum,alpha_ISB)
+    axs_fits.plot(nu_fit_plot, [fitFnLorentz(nu, *fitLorentz) for nu in nu_fit_plot],
                   linewidth=1,
                   label=fit_label)
 

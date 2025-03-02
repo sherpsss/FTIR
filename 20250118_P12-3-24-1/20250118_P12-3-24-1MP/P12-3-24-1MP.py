@@ -22,6 +22,7 @@ Lpath = epi_path*Nbounces
 numax = 1713
 numin = 750
 
+
 #adjust with well thicknesses based on Lodo runsheet
 
 samp_meas = MultipassMeas(samp=sample_name)
@@ -89,16 +90,21 @@ mask_bg = (bg_meas.TE_wavenum > numin) & (bg_meas.TE_wavenum < numax)
 
 #average the signal to compare
 
+axislabelsfont=30
+legendfont=30
+ticksize=30
+titlesize=34
 
-axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs[0].set_ylabel("Single Beam",fontsize=12)
+
+axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=axislabelsfont)
+axs[0].set_ylabel("Single Beam",fontsize=axislabelsfont)
 theta_variation_title =sample_name
 axs[0].set_title(theta_variation_title)
 
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
 axs[1].set_title(fit_plot_title)
-axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs[1].set_ylabel('Transmission Ratio',fontsize=12)
+axs[1].set_xlabel(r"$Wavenumber [{cm}^{-1}]$",fontsize=axislabelsfont)
+axs[1].set_ylabel('Transmission Ratio',fontsize=axislabelsfont)
 theta_variation_title_polarization_ratios = theta_variation_title + ' polarization ratios'
 
 samp_meas.TE_masked = samp_meas.TE_reshaped[mask_samp]
@@ -124,14 +130,15 @@ plt.savefig(save_title)
 #fit figure
 
 fig_fits, axs_fits = plt.subplots(figsize=(10, 8))
-axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=14)
+axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=axislabelsfont)
 
 offset = np.log(bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg])
 
 alpha_ISB= (-np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset)/Nperiods
 
-axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB}$ per well",
-                        color='green')
+# axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB}$ per well",
+                        # color='green')
+axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, color='green')
 
 # #do fits
 # numins = [840,1012,1700,1881]
@@ -151,14 +158,14 @@ for i in range(0,len(numins)):
     # fitNormalPlot(nu_range,fitLorentzParams[0],fitLorentzParams[1],samp_meas.TE_wavenum_masked,alpha_ISB,axs_fits)
 
 
-axs_fits.set_ylabel(r"$\alpha_{ISB}$ per well",fontsize=14)
-axs_fits.tick_params(axis='x',labelsize=12)
-axs_fits.tick_params(axis='y',labelsize=12)
+axs_fits.set_ylabel(r"$\alpha_{ISB}$ per well",fontsize=axislabelsfont)
+axs_fits.tick_params(axis='x',labelsize=ticksize)
+axs_fits.tick_params(axis='y',labelsize=ticksize)
 # fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-fit_plot_title = "Example Sample Absorption Measured via FTIR Multipass"
-axs_fits.set_title(fit_plot_title)
+fit_plot_title = r"Example Sample Absorption"
+axs_fits.set_title(fit_plot_title,fontsize=titlesize)
 axs_fits.legend()
-axs_fits.legend(prop={"size":14})
+axs_fits.legend(prop={"size":legendfont})
 plt.figure(fig_fits)
 # plt.yticks(fontsize=20)
 # plt.xticks(fontisze=20)

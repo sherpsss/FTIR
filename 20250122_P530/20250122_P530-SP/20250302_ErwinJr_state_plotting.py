@@ -9,7 +9,7 @@ class QuantizedState:
         self.WF_ys = None
         self.WF_xs = None
 
-def generate_MQW_plot(base_dir,base_filename,title,states_to_plot=None,axislabelsfont=18,legendfont=18,ticksize=18,titlesize=20):
+def generate_MQW_plot(base_dir,base_filename,title,states_to_highlight=None,states_to_plot=None,axislabelsfont=18,legendfont=18,ticksize=18,titlesize=20):
     wavefunctions_file = os.path.join(base_dir, base_filename+'_WFs.csv')
     conduction_band_file = os.path.join(base_dir, base_filename+'_CB.csv')
     energies_file = os.path.join(base_dir, base_filename+'_Es.csv')
@@ -60,7 +60,14 @@ def generate_MQW_plot(base_dir,base_filename,title,states_to_plot=None,axislabel
         #     wavefunctions_normalized.iloc[:, i] = wavefunctions.iloc[:, i] / np.max(np.abs(wavefunctions.iloc[:, i]))
         #     wavefunctions_normalized.iloc[:, i] *= 0.1  # Scale factor for visibility
         # axs_Es.plot(E_state.WF_xs, (E_state.WF_ys) * 0.3 + E_state.Energy, label=str(E_state.Energy))
-        axs_Es.plot(E_state.WF_xs, (E_state.WF_ys) * 0.3 + E_state.Energy)
+        plot_color = 'grey'
+        opacity = 0.5
+        if states_to_highlight is not None:
+            if E_ind in states_to_highlight:
+                plot_color = 'red'
+                opacity = 1.0
+        axs_Es.plot(E_state.WF_xs, (E_state.WF_ys) * 0.3 + E_state.Energy,color=plot_color,alpha=opacity)
+
     save_title = os.path.join(base_dir, base_filename + '.svg')
 
     # plt.legend()
@@ -79,28 +86,34 @@ sim_dir_P530 = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Pri
 
 GaAs_larger_filename = "P12-3-24-1_stack_933nu_transition"
 GaAs_smaller_filename = "P12-3-24-1_stack_7nm_GaAs_well"
-P530_filename = "P530_stack_2repeats"
+P530_filename = "P530_stack_backpage"
 
 states_to_plot_GaAs_larger = np.array([0,1,5,6,10,11])
 states_to_plot_GaAs_smaller = np.array([0,1,5,6,10,11])
-# states_to_plot_P530 = np.array([1,3,12,14])
+states_to_plot_P530 = np.array([5,23])
 
 axislabelsfont=30
 legendfont=30
 ticksize=30
 titlesize=34
+# special_colors = ['red','blue','lawgreen','darkorange']
 
 # axes_GaAs_larger,fig_GaAs_larger = generate_MQW_plot(sim_dir,GaAs_larger_filename,"Example Sample, GaAs well = " + str(GaAs_width_nm_larger) + " nm, 2 periods",states_to_plot=states_to_plot_GaAs_larger,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 # axes_GaAs_smaller,fig_GaAs_smaller = generate_MQW_plot(sim_dir,GaAs_smaller_filename,"Example Sample, GaAs well = " + str(GaAs_width_nm_smaller) + " nm, 2 periods",states_to_plot=states_to_plot_GaAs_smaller,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 
-# axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,"Complex Sample, 2 periods",states_to_plot=states_to_plot_P530,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
-axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,"Complex Sample, 2 periods",axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
+axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,"Complex Sample, 2 periods",states_to_highlight=states_to_plot_P530,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
+# axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,"Complex Sample, 2 periods",axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 plt.figure(fig_P530)
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
 # axes_GaAs_larger.set_xlim(xmin=1100,xmax=1700)
 # axes_GaAs_smaller.set_xlim(xmin=1050,xmax=1600)
+
+axes_P530.set_xlim(xmin=0,xmax=850)
+plt.figure(fig_P530)
+plt.tight_layout()
+plt.savefig(os.path.join(sim_dir, P530_filename + 'xlimed.svg'))
 #
 # plt.figure(fig_GaAs_larger)
 # plt.tight_layout()
@@ -115,3 +128,5 @@ plt.show()
 # plt.show()
 # plt.figure(fig_GaAs_smaller)
 # plt.show()
+plt.figure(fig_P530)
+plt.show()
