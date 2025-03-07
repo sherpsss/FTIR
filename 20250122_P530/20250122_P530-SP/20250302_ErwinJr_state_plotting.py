@@ -79,8 +79,8 @@ def generate_MQW_plot(base_dir,base_filename,title=None,states_to_highlight=None
                 plot_color = 'red'
                 opacity = 1.0
                 legend_label = 'filled state'
-        # axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity,label=legend_label)
-        axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity)
+        axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity,label=legend_label)
+        # axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity)
 
     save_title = os.path.join(base_dir, base_filename + '.svg')
 
@@ -105,7 +105,7 @@ P530_filename = "P530_stack_backpage_recalculating_repeats"
 states_to_plot_GaAs_larger = np.array([0,1,5,6,10,11])
 states_to_plot_GaAs_smaller = np.array([0,1,5,6,10,11])
 # states_to_plot_P530 = np.array([1,2,4,5])
-states_to_plot_P530 = np.array([1,3,10,12,16])
+states_to_plot_P530 = np.array([1,3])
 
 axislabelsfont=30
 legendfont=30
@@ -117,7 +117,7 @@ abs_cutoff = 0.0001
 # axes_GaAs_larger,fig_GaAs_larger = generate_MQW_plot(sim_dir,GaAs_larger_filename,"Example Sample, GaAs well = " + str(GaAs_width_nm_larger) + " nm, 2 periods",states_to_plot=states_to_plot_GaAs_larger,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 # axes_GaAs_smaller,fig_GaAs_smaller = generate_MQW_plot(sim_dir,GaAs_smaller_filename,"Example Sample, GaAs well = " + str(GaAs_width_nm_smaller) + " nm, 2 periods",states_to_plot=states_to_plot_GaAs_smaller,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 
-axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,title= "Simulated Wavefunctions",psisq_min=abs_cutoff,states_to_highlight=states_to_plot_P530,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
+axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,title= "Expected Populated States",psisq_min=abs_cutoff,states_to_highlight=states_to_plot_P530,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 # axes_P530,fig_P530 = generate_MQW_plot(sim_dir_P530,P530_filename,"Complex Sample, 2 periods",axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)
 # plt.figure(fig_P530)
 # plt.tight_layout()
@@ -130,7 +130,7 @@ handles, labels = axes_P530.get_legend_handles_labels()
 by_label = dict(zip(labels, handles))
 plt.legend(by_label.values(), by_label.keys())
 axes_P530.legend(by_label.values(), by_label.keys(),prop={"size": legendfont},loc='upper right')
-axes_P530.set_xlim(xmin=0,xmax=919)
+axes_P530.set_xlim(xmin=0,xmax=597)
 
 # plt.figure(fig_P530)
 plt.tight_layout()

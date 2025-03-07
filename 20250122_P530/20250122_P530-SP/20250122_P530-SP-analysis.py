@@ -94,7 +94,7 @@ axs_fits.tick_params(axis='x',labelsize=ticksize)
 axs_fits.tick_params(axis='y',labelsize=ticksize)
 
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
-reds = ['mediumvioletred','deeppink','hotpink','pink']
+reds = ['darkmagenta','mediumorchid','deeppink','pink']
 
 numins = [1042,1042,1042]
 numaxs = [1272,1272,1272]
@@ -143,17 +143,17 @@ for i in range(0,len(angles)):
 
     alpha_ISB= -np.log(angle_meas.TM_masked/angle_meas.TE_masked)+offset
     axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
-                            color=reds[i])
+                            color=reds[i],linewidth=3)
     # closestidx = (np.abs(angle_meas.TE_wavenum_masked-sim_transition_line)).argmin()
-    if i ==0:
-        axs_fits.axvline(sim_transition_line,label=r'$|d_{0,23}|=4.8 A$',color='lime')
+    # if i ==0:
+    #     axs_fits.axvline(sim_transition_line,label=r'$|d_{0,23}|=4.8 A$',color='lime')
 
     axs_fits.grid()
 
     # do the fit
     nu_range = [numins[i],numaxs[i]]
     kappa_nu_guess = kappa_nu_guesses[0]
-    fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits,nu_fit_plot_range=nuplot_range)
+    # fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits,nu_fit_plot_range=nuplot_range)
 
 #get the 0 deg one in there
 special_filename = 'P530-SP-top-chip'
