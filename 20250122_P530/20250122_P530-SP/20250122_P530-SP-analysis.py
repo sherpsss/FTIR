@@ -76,18 +76,18 @@ bg_meas.TE_wavenum_masked = bg_meas.TE_wavenum[mask_samp]
 axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
             label='TM/TE no sample', color='y')
 
-axislabelsfont=30
-legendfont=30
-ticksize=30
-titlesize=34
+axislabelsfont=20
+legendfont=20
+ticksize=20
+titlesize=25
 
 #absorption fit plot
-fig_fits, axs_fits = plt.subplots(figsize=(12, 8))
+fig_fits, axs_fits = plt.subplots(figsize=(8, 10))
 axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=axislabelsfont)
 # axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$",fontsize=axislabelsfont)
+axs_fits.set_ylabel("absorption [a.u.]",fontsize=axislabelsfont)
 # fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
-fit_plot_title = "Complex Multi-Quantum Well Sample Absorption"
+fit_plot_title = "FTIR Absorption Spectra"
 
 axs_fits.set_title(fit_plot_title,fontsize=titlesize)
 axs_fits.tick_params(axis='x',labelsize=ticksize)
@@ -140,8 +140,12 @@ for i in range(0,len(angles)):
     #calculate the absorption coefficient times path length
 
     offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
+    # offset = bg_meas.TM_masked/bg_meas.TE_masked
 
+
+    # alpha_ISB=-angle_meas.TM_masked/angle_meas.TE_masked + offset
     alpha_ISB= -np.log(angle_meas.TM_masked/angle_meas.TE_masked)+offset
+
     axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
                             color=reds[i],linewidth=3)
     # closestidx = (np.abs(angle_meas.TE_wavenum_masked-sim_transition_line)).argmin()
