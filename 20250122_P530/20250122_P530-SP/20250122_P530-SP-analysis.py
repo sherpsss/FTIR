@@ -76,16 +76,16 @@ bg_meas.TE_wavenum_masked = bg_meas.TE_wavenum[mask_samp]
 axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
             label='TM/TE no sample', color='y')
 
-axislabelsfont=20
-legendfont=20
-ticksize=20
-titlesize=25
+axislabelsfont=30
+legendfont=30
+ticksize=30
+titlesize=30
 
 #absorption fit plot
 fig_fits, axs_fits = plt.subplots(figsize=(8, 10))
 axs_fits.set_xlabel(r"Wavenumber $[{cm}^{-1}]$",fontsize=axislabelsfont)
 # axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
-axs_fits.set_ylabel("absorption [a.u.]",fontsize=axislabelsfont)
+axs_fits.set_ylabel("Absorption [a.u.]",fontsize=axislabelsfont)
 # fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 fit_plot_title = "FTIR Absorption Spectra"
 
@@ -243,7 +243,7 @@ plt.savefig(save_title)
 #     # FTIR_analysis_helpers.fitNormalPlot(nu_range,fitLorentzParams[0],fitLorentzParams[1],samp_meas.TE_wavenum_masked,alpha_ISB,axs_fits)
 #
 plt.figure(fig_fits)
-axs_fits.legend()
+axs_fits.legend(loc='upper right')
 axs_fits.legend(prop={"size":legendfont})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')

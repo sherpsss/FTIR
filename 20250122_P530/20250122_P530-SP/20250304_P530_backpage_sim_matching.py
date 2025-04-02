@@ -1,15 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import os
 import numpy as np
 
-def plot_transitions(stateindices_arr,deltanus_arr,dipoles_arr,botstatenum_arr,base_dir,wafername,expected_trans=None,botstatenum_markers=None,titlesize=20,ticksize=12,axislabelsfont=12,markersize=10):
-    fig, axs = plt.subplots(figsize=(10,8))
+def plot_transitions(stateindices_arr,deltanus_arr,dipoles_arr,botstatenum_arr,base_dir,wafername,expected_trans=None,botstatenum_markers=None,errorsizes=None,titlesize=20,ticksize=12,axislabelsfont=12,markersizes=None):
+    fig, axs = plt.subplots(figsize=(8,8))
     axs_dipole = axs.twinx()
-    axs.set_xlabel('state n', fontsize=axislabelsfont)
+    axs.set_xlabel('State n', fontsize=axislabelsfont)
     axs.grid(True)
-    axs_dipole.set_ylabel(r"$|d_{ij}|[A]$", fontsize=axislabelsfont,color='b')
+    axs_dipole.set_ylabel(r"$|d_{i,n}|[A]$", fontsize=axislabelsfont,color='b')
     axs.set_ylabel(r"$\Delta E[meV]$",fontsize=axislabelsfont,color='r')
+    axs.xaxis.set_major_locator(MaxNLocator(integer=True))
     marker = "."
     # axs.set_title(wafername + " simulated ISB transitions from state n to state " + str(botstatenum))
     for botstatenum_ind in range(0,len(botstatenum_arr)):
@@ -17,18 +19,28 @@ def plot_transitions(stateindices_arr,deltanus_arr,dipoles_arr,botstatenum_arr,b
         deltanus = deltanus_arr[botstatenum_ind]
         botstatenum = botstatenum_arr[botstatenum_ind]
         dipoles = dipoles_arr[botstatenum_ind]
+
+        # nulabel = '$\nu =$%0.2f, $\Delta f=$%0.1f' % (botstatenum, kappaTot) + '\n$Q=$%i, $\eta=$%0.3f, contrast=%0.3f' % (Qfac, eta, contrast)
         if botstatenum_markers is not None:
             marker = botstatenum_markers[botstatenum_ind]
-        axs.scatter(stateindices, deltanus, label=r"$\nu$"+str(botstatenum)+r"$-\nu n$",color='r',marker=marker,s=markersize)
+            errormarkersize = errorsizes[botstatenum_ind]
+            markersize = markersizes[botstatenum_ind]
+        # axs.scatter(stateindices, deltanus, label=r"$\nu$"+str(botstatenum)+r"$-\nu n$",color='r',marker=marker,s=markersize)
+
+        deltanuerrors = 0.1*deltanus
+        axs.errorbar(stateindices, deltanus,yerr=deltanuerrors, fmt=marker,label=r"$|E$"+str(botstatenum)+r"$-En|$",color='r',ms=errormarkersize)
+
+        deltanuerrors = 0.1*deltanus
+        # axs.errorbar(stateindices, deltanus,yerr=deltanuerrors,color='r')
         axs_dipole.scatter(stateindices, np.abs(dipoles), label=r"$d$" + str(botstatenum) + r"$n$",color='b',marker=marker,s=markersize)
 
 
     if expected_trans is not None:
         measured_nu = np.ones([len(stateindices_arr[0])])*expected_trans[0]
         lower_range = np.ones([len(stateindices_arr[0])])*(expected_trans[1]/2)
-        axs.plot(stateindices_arr[0],measured_nu, color='g',label=r"${\Delta E}_{measured}$",alpha=0.6)
-        axs.fill_between(stateindices_arr[0],measured_nu-lower_range,measured_nu+lower_range,color='g',label=r"$\Gamma_{measured}$",alpha=0.3)
-        axs.fill_between(stateindices_arr[0],measured_nu*0.9,measured_nu*1.1,color='royalblue',label="sim. tol.",alpha=0.3)
+        axs.plot(stateindices_arr[0],measured_nu, color='g',label=r"${\Delta E}_{measured}$",alpha=0.4)
+        axs.fill_between(stateindices_arr[0],measured_nu-lower_range,measured_nu+lower_range,color='g',label=r"$\Gamma_{measured}$",alpha=0.2)
+        # axs.fill_between(stateindices_arr[0],measured_nu*0.9,measured_nu*1.1,color='royalblue',label="sim. tol.",alpha=0.2)
         # axs.axhline()
     # axs.legend()
     # axs.legend(prop={"size": 14})
@@ -74,13 +86,18 @@ deltanus_arr = [deltaE0En_meV[1:],deltaE1En_meV[1:]]
 dipoles_arr = [dipole0n[1:],dipole1n[1:]]
 botstatenum_arr = [1,2]
 
+# axislabelsfont=30
+# legendfont=30
+# ticksize=30
+# titlesize=30
 axislabelsfont=30
 legendfont=30
 ticksize=30
-titlesize=30
-markersize = 300
+titlesize=35
+markersize = 75
+errormarkersize=10
 # gnd_state_plot,gnd_state_ax = plot_transitions(statenum,deltanu0n,dipole0n,0,base_dir,wafername,expected_trans=[measured_deltanu,measured_gamma])
-gnd_state_plot,gnd_state_ax,gnd_state_dipole_ax = plot_transitions(stateindices_arr,deltanus_arr,dipoles_arr,botstatenum_arr,base_dir,wafername,expected_trans=[measured_deltanu_meV,measured_gamma_meV],botstatenum_markers=["+","."],titlesize=titlesize,ticksize=ticksize,axislabelsfont=axislabelsfont,markersize=markersize)
+gnd_state_plot,gnd_state_ax,gnd_state_dipole_ax = plot_transitions(stateindices_arr,deltanus_arr,dipoles_arr,botstatenum_arr,base_dir,wafername,expected_trans=[measured_deltanu_meV,measured_gamma_meV],botstatenum_markers=["o","*"],errorsizes=[7,15],titlesize=titlesize,ticksize=ticksize,axislabelsfont=axislabelsfont,markersizes=[60,200])
 # E1state_plot,E1_state_ax = plot_transitions(statenum,deltanu1n,dipole1n,1,base_dir,wafername,expected_trans=[measured_deltanu,measured_gamma])
 
 handles, labels = gnd_state_ax.get_legend_handles_labels()
