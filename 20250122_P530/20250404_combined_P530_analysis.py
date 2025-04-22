@@ -12,10 +12,10 @@ from matplotlib.ticker import MaxNLocator
 sample_name = 'P530'
 # angle_of_incidence = 45
 
-axislabelsfont=30
+axislabelsfont=15
 legendfont=15
-ticksize=20
-titlesize=30
+ticksize=15
+titlesize=20
 linesize= 2
 
 numax = 3100
@@ -31,12 +31,12 @@ angle0 = 280
 
 #raw data plots
 
-fig_mc, axs_mc = plt.subplots(nrows=3,ncols=1,sharex=True,figsize=(14, 8))
+fig_mc, axs_mc = plt.subplots(nrows=2,ncols=1,sharex=True,figsize=(8,10))
 
-# axs_mc[0].tick_params(axis='x',labelsize=ticksize)
-# axs_mc[0].tick_params(axis='y',labelsize=ticksize)
-# axs_mc[1].tick_params(axis='y',labelsize=ticksize)
-# axs_mc[2].tick_params(axis='y',labelsize=ticksize)
+axs_mc[0].tick_params(axis='x',labelsize=ticksize)
+axs_mc[0].tick_params(axis='y',labelsize=ticksize)
+axs_mc[1].tick_params(axis='y',labelsize=ticksize)
+axs_mc[1].tick_params(axis='x',labelsize=ticksize)
 
 theta_variation_title =sample_name + ' Raw data'
 
@@ -181,9 +181,9 @@ offset = np.log(bg_meas.TM_masked / bg_meas.TE_masked)
 
 alpha_ISB = -np.log(samp_meas.TM_masked / samp_meas.TE_masked) + offset
 
-path_len_label = r"Multipass: $N_{bounces} = %d $" % (Nbounces) + r"$,L_{path} = %0.2f mm$" % (Lpath)
+path_len_label = r"$N_{bounces} = %d $" % (Nbounces) + r"$, L_{path} = %0.2f mm$" % (Lpath)
 
-axs_mc[2].plot(samp_meas.TE_wavenum_masked, alpha_ISB, label=path_len_label,
+axs_mc[1].plot(samp_meas.TE_wavenum_masked, alpha_ISB, label=path_len_label,
               color='b',linewidth=linesize)
 
 ## add the straight on P530-C single pass ##
@@ -243,23 +243,23 @@ angle_meas.TE_wavenum_masked = angle_meas.TE_wavenum[mask_samp]
 offset = np.log(bg_meas.TM_masked / bg_meas.TE_masked)
 
 alpha_ISB = -np.log(angle_meas.TM_masked / angle_meas.TE_masked) + offset
-axs_mc[1].plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',color=reds[3],linewidth=linesize)
+axs_mc[0].plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',color=reds[3],linewidth=linesize)
 
 ## do overall figure formatting ##
 
 plt.figure(fig_mc)
-fig_mc.supxlabel(r"Wavenumber [${cm}^{-1}$]")
-fig_mc.supylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$")
-fig_mc.suptitle('P530 Absorption: Single Pass and Multipass')
+fig_mc.supxlabel(r"Wavenumber [${cm}^{-1}$]",fontsize=axislabelsfont)
+# fig_mc.supylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=axislabelsfont)
+fig_mc.suptitle('P530 Absorption: Single Pass and Multipass',fontsize=titlesize)
 axs_mc[0].legend(loc='upper right')
 axs_mc[1].legend(loc='upper right')
-axs_mc[2].legend(loc='upper right')
+# axs_mc[2].legend(loc='upper right')
 axs_mc[0].legend(prop={"size":legendfont})
 axs_mc[1].legend(prop={"size":legendfont})
-axs_mc[2].legend(prop={"size":legendfont})
+# axs_mc[2].legend(prop={"size":legendfont})
 axs_mc[0].grid()
 axs_mc[1].grid()
-axs_mc[2].grid()
+# axs_mc[2].grid()
 
 axs_mc[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 

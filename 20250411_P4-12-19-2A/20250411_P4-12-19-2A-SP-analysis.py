@@ -3,26 +3,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 from FTIR_analysis_helpers import load_data
 from FTIR_analysis_helpers import SinglePassMeas
+from matplotlib.ticker import MaxNLocator
 
-
-sample_name = '342A'
-
-numax = 3100
-numin = 850
-tsamp_guess = 0.5 #mm
-
+sample_name = 'P4-12-19-2A'
+numax = 4000
+numin = 650
+ap_meas = 40
+gain_meas = 4
+ap_bg = 10
+gain_bg = 2
 Fout = 0.78 #fresnel coefficient in
 Fin = Fout
+nuISBs_check = [992, 1342, 1517]
+
+Lsample = 10 #mm
+tsamp = np.mean([0.449,0.443,0.445,0.438]) #mm
+Nbounces = Lsample/tsamp
+# Lpath = np.sqrt(2)*Nbounces*tsamp
+Lpath = 14
+
+settings_suffix_meas = 'ap-'+str(ap_meas)+'-gain-'+str(gain_meas)
+settings_suffix_bg = 'ap-'+str(ap_bg)+'-gain-'+str(gain_bg)
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20241211_theta_i_sweep_singlepass_342A'
-bg_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20241211_theta_i_sweep_singlepass_342A/backgrounds'
-angles = [280,297,312,322]
-angle0 = 280
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P4-12-19-2A'
+angles = [0,30,50]
+
+# angle0 = 280
 
 #raw data plots
-fig, axs = plt.subplots(1, 2, figsize=(14, 8))
+fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
 axs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[0].set_ylabel("Single Beam",fontsize=12)
@@ -34,8 +45,10 @@ axs[1].set_title(fit_plot_title)
 axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs[1].set_ylabel('Transmission Ratio',fontsize=12)
 
-tm_bg_file = os.path.join(bg_dir, 'background_P0deg' + '.CSV')
-te_bg_file = os.path.join(bg_dir, 'background_P90deg' + '.CSV')
+axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
+
+tm_bg_file = os.path.join(base_dir, settings_suffix_bg +'-P0deg-bg' + '.CSV')
+te_bg_file = os.path.join(base_dir, settings_suffix_bg + '-P90deg-bg' + '.CSV')
 
 _, tm_bg_wavenum, tm_bg_single_beam, _ = load_data(tm_bg_file)
 _, te_bg_wavenum, te_bg_single_beam, _ = load_data(te_bg_file)
@@ -68,24 +81,38 @@ axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
 axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}=-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
 fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 axs_fits.set_title(fit_plot_title)
+axs_fits.grid()
+axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-fig_trans, axs_trans = plt.subplots(figsize=(12, 8))
-axs_trans.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_trans.set_ylabel(r"$\alpha = \frac{-\ln(\frac{I_{out}}{I_{in}} \frac{1}{F_{in} \times F_{out}})}{t_{samp}} $",fontsize=12)
-fit_trans_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + " assuming $t_{samp}=$" + str(tsamp_guess) + " mm"
-axs_trans.set_title(fit_trans_title)
+
+#absorption per pass plot
+fig_abs, axs_abs = plt.subplots(1,2,figsize=(12, 8))
+axs_abs[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
+axs_abs[0].set_ylabel(r"$\alpha = \frac{-\ln(\frac{I_{out}}{I_{in}} \frac{1}{F_{in} \times F_{out}})}{t_{samp}} $",fontsize=12)
+fit_abs_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r", $t_{samp} = $" + str(tsamp) + " mm"
+axs_abs[0].set_title(fit_abs_plot_title)
+
+axs_abs[1].set_xlabel(r"path length [mm]",fontsize=12)
+axs_abs[1].set_ylabel(r"Transmission fraction per sample path length ",fontsize=12)
+
+alpha_nu0_TE = 0 # per mm
+alpha_nu0_TM = 0 #place holders to be filled in later
 
 blues = ['darkblue','mediumblue','blue','cornflowerblue']
-reds = ['mediumvioletred','deeppink','hotpink','palevioletred']
+reds = ['fuchsia','mediumvioletred','crimson','lightpink']
 
 for i in range(0,len(angles)):
     angle = angles[i]
-    angle_filename = 'theta_stage_'+ str(angle) + '_deg_'
-    tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
-    te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
+    if angle==0:
+        settings_suffix = settings_suffix_bg
+    else:
+        settings_suffix = settings_suffix_meas
+    angle_filename = settings_suffix + '-rot'+ str(angle)+'deg'
+
+    tm_file = os.path.join(base_dir, angle_filename+'-P0deg' + '.CSV')
+    te_file = os.path.join(base_dir, angle_filename+'-P90deg' + '.CSV')
     _, tm_wavenum, tm_single_beam, _ = load_data(tm_file)
     _, te_wavenum, te_single_beam, _ = load_data(te_file)
-    angle = angle-angle0
     angle_meas = SinglePassMeas(ident=str(angle))
     angle_meas.TM_wavenum = tm_wavenum
     angle_meas.TE_wavenum = te_wavenum
@@ -105,6 +132,11 @@ for i in range(0,len(angles)):
     angle_meas.TE_wavenum_masked = angle_meas.TE_wavenum[mask_samp]
 
     axs[1].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/angle_meas.TE_masked, label= 'TM/TE '+str(angle) + '$\degree$',
+                            color=reds[i])
+
+    axs[2].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/bg_meas.TM_masked, label= 'samp TM '+str(angle) + '$\degree $ / TM background' ,
+                            color=reds[i])
+    axs[2].plot(angle_meas.TE_wavenum_masked, angle_meas.TE_masked/bg_meas.TE_masked, label= 'samp TE '+str(angle) + '$\degree $ / TE background' ,
                             color=blues[i])
 
     #calculate the absorption coefficient times path length
@@ -113,74 +145,41 @@ for i in range(0,len(angles)):
 
     alpha_ISB= -np.log(angle_meas.TM_masked/angle_meas.TE_masked)+offset
     axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
-                            color=blues[i])
-
-    if angle == 0:
-        alpha_samp_TE = -np.log((angle_meas.TE_masked / bg_meas.TE_masked) / (Fin * Fout)) / tsamp_guess
-        alpha_samp_TM = -np.log((angle_meas.TM_masked / bg_meas.TM_masked) / (Fin * Fout)) / tsamp_guess
-        axs_trans.plot(angle_meas.TM_wavenum_masked, alpha_samp_TM, label='TM '+ str(angle) + '$\degree$',
-                            color=blues[i])
-        axs_trans.plot(angle_meas.TE_wavenum_masked, alpha_samp_TE, label= 'TE '+str(angle) + '$\degree$',
                             color=reds[i])
 
-#try using backgrounds with no sample in the path
-#
-# axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE',
-#                         color='blue')
-# axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM',
-#                         color='red')
-#
-# axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE bg ' + bg_name,
-#                         color='c')
-# axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label= 'TM bg' + bg_name,
-#                         color='m')
-#
-# #now do the masking
-#
-# mask_samp = (samp_meas.TE_wavenum_reshaped > numin) & (samp_meas.TE_wavenum_reshaped < numax)
-# #
-# # # Apply the mask to the array
-# #
-# mask_bg = (bg_meas.TE_wavenum > numin) & (bg_meas.TE_wavenum < numax)
-#
-# #average the signal to compare
-#
-# fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
-# axs[1].set_title(fit_plot_title)
-# axs[1].set_xlabel('Wavenumber (cm^-1)')
-# axs[1].set_ylabel('Transmission Ratio')
-# theta_variation_title_polarization_ratios = theta_variation_title + ' polarization ratios'
-#
-# samp_meas.TE_masked = samp_meas.TE_reshaped[mask_samp]
-# samp_meas.TM_masked = samp_meas.TM_reshaped[mask_samp]
-# samp_meas.TM_wavenum_masked = samp_meas.TM_wavenum_reshaped[mask_samp]
-# samp_meas.TE_wavenum_masked = samp_meas.TE_wavenum_reshaped[mask_samp]
-#
-# axs[1].plot(samp_meas.TE_wavenum_masked, samp_meas.TM_masked/samp_meas.TE_masked, label= 'TM/TE with sample masked reshaped',
-#                         color='green')
-# axs[1].plot(bg_meas.TE_wavenum[mask_bg], bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg], label= 'TM/TE no sample masked reshaped',
-#                         color='y')
-#
+    if angle==0:
+
+        alpha_samp_TE = -np.log((angle_meas.TE_masked/bg_meas.TE_masked)/(Fin*Fout))/tsamp
+        alpha_samp_TM = -np.log((angle_meas.TM_masked / bg_meas.TM_masked)/(Fin*Fout))/tsamp
+        # nuISBs_check = [0.95*nu_ISB,nu_ISB,1.05*nu_ISB]
+
+        axs_abs[0].plot(angle_meas.TE_wavenum_masked,alpha_samp_TE,label='TE' + str(angle) + '$\degree$',color=reds[i])
+        axs_abs[0].plot(angle_meas.TM_wavenum_masked, alpha_samp_TM,label='TM' + str(angle) + '$\degree$',color=blues[i])
+        for nuISB_ind in range(0,len(nuISBs_check)):
+            nuISB_check = nuISBs_check[nuISB_ind]
+            idx_closest = np.abs(angle_meas.TE_wavenum_masked - nuISB_check).argmin()
+
+            alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
+            alpha_nu0_TM = alpha_samp_TM[idx_closest]
+            pathlens = np.linspace(0.0,Lpath,num=50)#per mm
+            axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label=r"$TM, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=reds[nuISB_ind])
+            axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label=r"$TE, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=blues[nuISB_ind])
+
+    #transmission per length at 1120 cm^-1
+
+
 plt.figure(fig)
 axs[0].legend()
 axs[0].legend(prop={"size":14})
 axs[1].legend()
 axs[1].legend(prop={"size":14})
+axs[2].legend()
+axs[2].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
-#
-# #fit figure
-#
-# offset = np.log(bg_meas.TM_single_beam[mask_bg]/bg_meas.TE_single_beam[mask_bg])
-#
-# alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
-#
-# axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",
-#                         color='green')
-#
+#                    color='green')
 
-#
 plt.figure(fig_fits)
 axs_fits.legend()
 axs_fits.legend(prop={"size":14})
@@ -188,17 +187,23 @@ plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')
 plt.savefig(save_title)
 
-plt.figure(fig_trans)
-axs_trans.legend()
-axs_trans.legend(prop={"size":14})
+plt.figure(fig_abs)
+# fit_abs_plot_title = r"$\alpha(\nu = $" + str(nu_ISB) + r")"
+# axs_abs[1].set_title(fit_abs_plot_title)
+
+axs_abs[0].grid(True)
+axs_abs[1].grid(True)
+axs_abs[0].legend()
+axs_abs[0].legend(prop={"size":14})
+axs_abs[1].legend()
+axs_abs[1].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'transmissions' + '.svg')
 plt.savefig(save_title)
 
 plt.figure(fig)
 plt.show()
-plt.figure(fig_trans)
-plt.show()
 plt.figure(fig_fits)
 plt.show()
-
+plt.figure(fig_abs)
+plt.show()
