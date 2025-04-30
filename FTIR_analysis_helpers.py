@@ -17,6 +17,8 @@ def load_data(filename):
 
 class MultipassMeas:
     def __init__(self,samp):
+        self.name = samp
+
         self.TM_single_beam = None
         self.TE_single_beam = None
         self.TM_wavenum = None
