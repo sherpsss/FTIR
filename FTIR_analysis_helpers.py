@@ -46,6 +46,24 @@ class SinglePassMeas:
         self.TM_wavenum_masked = None
         self.TE_wavenum_masked = None
 
+def build_MP(TEfile,TMfile,sample_name,nuextrema=None):
+    _, tm_wavenum, tm_single_beam, _ = load_data(TMfile)
+    _, te_wavenum, te_single_beam, _ = load_data(TEfile)
+    samp_meas = MultipassMeas(samp=sample_name)
+
+    # try using backgrounds with no sample in the path
+    samp_meas.TM_wavenum = tm_wavenum
+    samp_meas.TE_wavenum = te_wavenum
+    samp_meas.TM_single_beam = tm_single_beam
+    samp_meas.TE_single_beam = te_single_beam
+    if nuextrema is not None:
+        mask_samp = (samp_meas.TE_wavenum > nuextrema[0]) & (samp_meas.TE_wavenum < nuextrema[1])
+        samp_meas.TE_masked = samp_meas.TE_single_beam[mask_samp]
+        samp_meas.TM_masked = samp_meas.TM_single_beam[mask_samp]
+        samp_meas.TM_wavenum_masked = samp_meas.TM_wavenum[mask_samp]
+        samp_meas.TE_wavenum_masked = samp_meas.TE_wavenum[mask_samp]
+
+    return samp_meas
 
 def fitFnLorentz(nu, nuo, kappanuhalf, A, B):
     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2)
@@ -125,3 +143,34 @@ def fitNormalPlot(nu_range,mu_guess,sigma_guess,wavenum,alpha_ISB,axs_fits):
                   label=fit_label)
 
     return fitNormal
+
+def calculate_Fresnels(theta_i_deg, n2, n1):
+    # assumes theta_i in degrees
+    theta_i = np.radians(theta_i_deg)
+    sin_theta_t = n1 * np.sin(theta_i) / n2
+    non_TIR_indices = np.where(sin_theta_t <= 1)
+    # TIR_indices = np.where(sin_theta_t > 1)
+
+    non_TIR_thetas = theta_i[non_TIR_indices]
+    costhetat = np.sqrt(1 - sin_theta_t[non_TIR_indices] ** 2)
+
+    numerator_p = n1 * costhetat - n2 * np.cos(non_TIR_thetas)
+    denominator_p = n1 * costhetat + n2 * np.cos(non_TIR_thetas)
+
+    Rp = np.full_like(theta_i,1.0)
+    Rp_nonTIR = np.abs(numerator_p / denominator_p) ** 2
+    Rp[non_TIR_indices] = Rp_nonTIR
+    Tp = 1 - Rp
+
+    numerator_s = n1 * np.cos(non_TIR_thetas) - n2 * costhetat
+    denominator_s = n1 * np.cos(non_TIR_thetas) + n2 * costhetat
+    Rs = np.full_like(theta_i,1.0)
+    Rs_nonTIR = np.abs(numerator_s / denominator_s) ** 2
+    Rs[non_TIR_indices] = Rs_nonTIR
+    Ts = 1.0 - Rs
+
+
+    # TIR_thetas = theta_i[TIR_indices]
+    # print(Rp)
+
+    return Rp, Tp, Rs, Ts, n1, n2

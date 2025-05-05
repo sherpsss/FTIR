@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from FTIR_analysis_helpers import load_data
 from FTIR_analysis_helpers import SinglePassMeas
+from FTIR_analysis_helpers import calculate_Fresnels
 from matplotlib.ticker import MaxNLocator
 
 sample_name = 'P4-12-19-2A'
@@ -28,7 +29,13 @@ settings_suffix_bg = 'ap-'+str(ap_bg)+'-gain-'+str(gain_bg)
 #adjust with well thicknesses based on Lodo runsheet
 
 base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P4-12-19-2A'
+n_air = 1.0
+n_InP = 2.7132  # InP at lambda = 8 um
+n_GaAs = 3.28
 angles = [0,30,50]
+
+Rp, Tp, Rs, Ts, n1, n2 = calculate_Fresnels(angles, n_GaAs, n_air)
+# print()
 
 # angle0 = 280
 

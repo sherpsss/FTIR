@@ -10,31 +10,33 @@ from FTIR_analysis_helpers import fitLorentzPlot
 
 
 
-sample_name = 'P4-12-19-2A-alpha'
+sample_name = '342B'
 ap_bg = 15
+ap_samp = 87
 gain_bg = 2
+gain_samp = 4
 att_bg = 'mod'
-preamp = 'PA101'
+preamp = '04-07-101546'
 
 # settings_suffix_bg = 'ap_' + str(ap_bg) + '_gain_' + str(gain_bg)
 settings_suffix_bg = 'att_' + att_bg
 
-settings_suffix_samp = preamp + '-preamp-matched'
+settings_suffix_samp = 'ap_' + str(ap_samp) + '_gain_' + str(gain_samp)
 
-numax = 3100
-numin = 650
+numax = 3400
+numin = 660
 
 
 #adjust with well thicknesses based on Lodo runsheet
 
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/preamp_SNR_test/J15-D16-det/P4-12-19-2A-alpha in path'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250422_342B'
 bg_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250421_P4-12-19-2A-alpha/PA101-J15D16-preamp-matched'
 
 # tm_file = os.path.join(base_dir, settings_suffix_samp + '-P0deg' + '.CSV')
 # te_file = os.path.join(base_dir, settings_suffix_samp + '-P90deg' + '.CSV')
-tm_file = os.path.join(base_dir, 'sharon_det_sharon_preamp_' + 'P0deg' + '.CSV')
-te_file = os.path.join(base_dir, 'sharon_det_sharon_preamp_' + 'P90deg' + '.CSV')
+tm_file = os.path.join(base_dir, 'P0deg_' + settings_suffix_samp + '.CSV')
+te_file = os.path.join(base_dir, 'P90deg_' + settings_suffix_samp + '.CSV')
 
 samp_meas = build_MP(te_file,tm_file,sample_name,nuextrema=[numin,numax])
 
