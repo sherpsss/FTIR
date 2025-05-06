@@ -7,7 +7,7 @@ from FTIR_analysis_helpers import build_SP
 from FTIR_analysis_helpers import calculate_Fresnels
 from matplotlib.ticker import MaxNLocator
 
-sample_name = 'P4-12-19-2A'
+sample_name = 'P4-12-19-2A-beta1'
 numax = 4000
 numin = 650
 ap_meas = 40
@@ -21,15 +21,14 @@ nuISBs_check = [992, 1342, 1517]
 Lsample = 10 #mm
 tsamp = np.mean([0.449,0.443,0.445,0.438]) #mm
 Nbounces = Lsample/tsamp
-# Lpath = np.sqrt(2)*Nbounces*tsamp
 Lpath = 14
 
-settings_suffix_meas = 'ap-'+str(ap_meas)+'-gain-'+str(gain_meas)
-settings_suffix_bg = 'ap-'+str(ap_bg)+'-gain-'+str(gain_bg)
+# settings_suffix_meas = 'ap-'+str(ap_meas)+'-gain-'+str(gain_meas)
+# settings_suffix_bg = 'ap-'+str(ap_bg)+'-gain-'+str(gain_bg)
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P4-12-19-2A'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250505_P4-12-19-2A-beta1'
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
@@ -59,8 +58,8 @@ axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[2].xaxis.set_major_locator(MaxNLocator(integer=True))
 
-tm_bg_file = os.path.join(base_dir, settings_suffix_bg +'-P0deg-bg' + '.CSV')
-te_bg_file = os.path.join(base_dir, settings_suffix_bg + '-P90deg-bg' + '.CSV')
+tm_bg_file = os.path.join(base_dir, 'bg' +'_P0deg' + '.CSV')
+te_bg_file = os.path.join(base_dir, 'bg' + '_P90deg' + '.CSV')
 
 bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
@@ -100,14 +99,11 @@ reds = ['fuchsia','mediumvioletred','crimson','lightpink']
 
 for i in range(0,len(angles)):
     angle = angles[i]
-    if angle==0:
-        settings_suffix = settings_suffix_bg
-    else:
-        settings_suffix = settings_suffix_meas
-    angle_filename = settings_suffix + '-rot'+ str(angle)+'deg'
 
-    tm_file = os.path.join(base_dir, angle_filename+'-P0deg' + '.CSV')
-    te_file = os.path.join(base_dir, angle_filename+'-P90deg' + '.CSV')
+    angle_filename = 'rot'+ str(angle)+'deg_'
+
+    tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
+    te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
 
     angle_meas = build_SP(te_file,tm_file,sample_name,[angle],fresnel=True,n1=n_air,n2=n_GaAs,n3=n_air,nuextrema=[numin,numax])
 
