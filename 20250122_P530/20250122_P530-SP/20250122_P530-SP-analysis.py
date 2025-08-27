@@ -5,7 +5,7 @@ import numpy as np
 from FTIR_analysis_helpers import MultipassMeas
 from FTIR_analysis_helpers import load_data
 from FTIR_analysis_helpers import fitLorentzPlot
-from FTIR_analysis_helpers import SinglePassMeas
+from FTIR_analysis_helpers import build_SP
 # from ...FTIR_analysis_helpers import MultipassMeas
 # from ...FTIR_analysis_helpers import fitLorentzPlot
 
@@ -18,6 +18,10 @@ well_period = 320e-5 #mm
 Nperiods = 29
 epi_path = np.sqrt(2)*Nperiods*well_period
 Lpath = epi_path*Nbounces
+
+n_air = 1.0
+n_InP = 2.7132  # InP at lambda = 8 um
+n_GaAs = 3.28
 
 numax = 3100
 numin = 785
@@ -51,27 +55,12 @@ axs[2].grid()
 tm_bg_file = os.path.join(base_dir, 'no_samp_P0deg' + '.CSV')
 te_bg_file = os.path.join(base_dir, 'no_samp_P90deg' + '.CSV')
 
-_, tm_bg_wavenum, tm_bg_single_beam, _ = load_data(tm_bg_file)
-_, te_bg_wavenum, te_bg_single_beam, _ = load_data(te_bg_file)
-
-bg_meas = SinglePassMeas(ident='background')
-
-bg_meas.TE_single_beam=te_bg_single_beam
-bg_meas.TM_single_beam=tm_bg_single_beam
-bg_meas.TE_wavenum=te_bg_wavenum
-bg_meas.TM_wavenum=tm_bg_wavenum
+bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
 axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label='TE bg ',
             color='yellowgreen')
 axs[0].plot(bg_meas.TM_wavenum, bg_meas.TM_single_beam, label='TM bg',
             color='darkgoldenrod')
-
-mask_samp = (bg_meas.TE_wavenum > numin) & (bg_meas.TE_wavenum < numax)
-
-bg_meas.TE_masked = bg_meas.TE_single_beam[mask_samp]
-bg_meas.TM_masked = bg_meas.TM_single_beam[mask_samp]
-bg_meas.TM_wavenum_masked = bg_meas.TM_wavenum[mask_samp]
-bg_meas.TE_wavenum_masked = bg_meas.TE_wavenum[mask_samp]
 
 axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
             label='TM/TE no sample', color='y')
@@ -108,14 +97,10 @@ for i in range(0,len(angles)):
     angle_filename = sample_name + '-SP-rot'+ str(angle)+'deg-'
     tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
     te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
-    _, tm_wavenum, tm_single_beam, _ = load_data(tm_file)
-    _, te_wavenum, te_single_beam, _ = load_data(te_file)
     angle = angle0-angle
-    angle_meas = SinglePassMeas(ident=str(angle))
-    angle_meas.TM_wavenum = tm_wavenum
-    angle_meas.TE_wavenum = te_wavenum
-    angle_meas.TM_single_beam = tm_single_beam
-    angle_meas.TE_single_beam = te_single_beam
+
+    angle_meas = build_SP(te_file, tm_file, sample_name, [angle], fresnel=True, n1=n_air, n2=n_GaAs, n3=n_air,
+                          nuextrema=[numin, numax])
 
     #add the raw data plot
     axs[0].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam, label='TE '+str(angle) + '$\degree$',
@@ -124,10 +109,6 @@ for i in range(0,len(angles)):
                 color=reds[i])
 
     #do the masking
-    angle_meas.TE_masked = angle_meas.TE_single_beam[mask_samp]
-    angle_meas.TM_masked = angle_meas.TM_single_beam[mask_samp]
-    angle_meas.TM_wavenum_masked = angle_meas.TM_wavenum[mask_samp]
-    angle_meas.TE_wavenum_masked = angle_meas.TE_wavenum[mask_samp]
 
     axs[1].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/angle_meas.TE_masked, label= 'TM/TE '+str(angle) + '$\degree$',
                             color=reds[i])
@@ -160,15 +141,17 @@ for i in range(0,len(angles)):
     # fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,angle_meas.TE_wavenum_masked, alpha_ISB, axs_fits,nu_fit_plot_range=nuplot_range)
 
 #get the 0 deg one in there
-special_filename = 'P530-SP-top-chip'
-special_file = os.path.join(base_dir, special_filename + '.CSV')
-_, te_wavenum, te_single_beam, _ = load_data(special_file)
-angle = 0
-angle_meas = SinglePassMeas(ident=str(angle))
-angle_meas.TE_wavenum = te_wavenum
-angle_meas.TE_single_beam = te_single_beam
-axs[0].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam, label='TE ' + str(angle) + '$\degree$',
-            color=blues[-1])
+# special_filename = 'P530-SP-top-chip'
+# special_file = os.path.join(base_dir, special_filename + '.CSV')
+# # _, te_wavenum, te_single_beam, _ = load_data(special_file)
+# angle = 0
+# angle = angle0 - angle
+#
+# angle_meas = SinglePassMeas(ident=str(angle))
+# angle_meas.TE_wavenum = te_wavenum
+# angle_meas.TE_single_beam = te_single_beam
+# axs[0].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam, label='TE ' + str(angle) + '$\degree$',
+#             color=blues[-1])
 
 #try using backgrounds with no sample in the path
 #
