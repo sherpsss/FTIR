@@ -28,13 +28,11 @@ Lpath = 14
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250828_P7-7-25-1SP-T'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250822_P7-7-25-1-reflection'
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
-angles = [0,50,60]
-
-# angle0 = 280
+angles = [45,55]
 
 #raw data plots
 fig, axs = plt.subplots(1, 2, figsize=(18, 8))
@@ -46,15 +44,10 @@ axs[0].set_ylabel(r"Single Beam",fontsize=12)
 theta_variation_title =sample_name + ' Raw data'
 axs[0].set_title(theta_variation_title)
 
-axs[1].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs[1].set_ylabel(r"Single Beam, Fresnel Corrected",fontsize=12)
-theta_variation_title =sample_name + ' Fresnel Corrected'
-axs[1].set_title(theta_variation_title)
-
 fit_plot_title = sample_name+ " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
 axs_rats[0].set_title(fit_plot_title)
 axs_rats[0].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_rats[0].set_ylabel('Transmission Ratio, Fresnel corrected',fontsize=12)
+axs_rats[0].set_ylabel('Transmission Ratio',fontsize=12)
 
 fit_plot_title = "angle resolved transmissions fresnel corrected"
 axs_rats[1].set_title(fit_plot_title)
@@ -66,9 +59,8 @@ axs_rats[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 
-
-tm_bg_file = os.path.join(base_dir, 'bg_end' +'_P0deg' + '.CSV')
-te_bg_file = os.path.join(base_dir, 'bg_end' + '_P90deg' + '.CSV')
+tm_bg_file = os.path.join(base_dir, 'P0deg_bg' + '.CSV')
+te_bg_file = os.path.join(base_dir, 'P90deg_bg' + '.CSV')
 
 bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
@@ -77,13 +69,22 @@ axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label='TE bg ',
 axs[0].plot(bg_meas.TM_wavenum, bg_meas.TM_single_beam, label='TM bg',
             color='darkgoldenrod')
 
-axs[1].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label='TE bg ',
-            color='yellowgreen')
-axs[1].plot(bg_meas.TM_wavenum, bg_meas.TM_single_beam, label='TM bg',
-            color='darkgoldenrod')
-
 axs_rats[0].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked/bg_meas.TE_masked,
             label='TM/TE no sample', color='y')
+
+# SP measure (straight on transmission)
+tm_SP_file = os.path.join(base_dir, 'P0deg_SP' + '.CSV')
+te_SP_file = os.path.join(base_dir, 'P90deg_SP' + '.CSV')
+
+SP_meas = build_SP(te_SP_file, tm_SP_file, 'SP', [0], fresnel=False, nuextrema=[numin, numax])
+
+axs[0].plot(SP_meas.TE_wavenum, SP_meas.TE_single_beam, label= r"$\theta_i =0 deg$" + ' SP transmission TE',
+            color='cornflowerblue')
+axs[0].plot(SP_meas.TM_wavenum, SP_meas.TM_single_beam, label=r"$\theta_i =0 deg$" + ' SP transmission TM',
+            color='lightpink')
+
+axs_rats[0].plot(SP_meas.TM_wavenum_masked, SP_meas.TM_masked/SP_meas.TE_masked,
+            label='TM/TE SP transmission', color='crimson')
 
 #absorption fit plot
 fig_fits, axs_fits = plt.subplots(figsize=(12, 8))
@@ -93,7 +94,6 @@ fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(
 axs_fits.set_title(fit_plot_title)
 axs_fits.grid()
 axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
-
 
 #absorption per pass plot
 fig_abs, axs_abs = plt.subplots(1,2,figsize=(12, 8))
@@ -114,38 +114,20 @@ reds = ['fuchsia','mediumvioletred','crimson','lightpink']
 for i in range(0,len(angles)):
     angle = angles[i]
 
-    angle_filename = 'rot'+ str(angle)+'deg_'
+    angle_filename = '_thetai_'+ str(angle)+'deg'
 
-    tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
-    te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
+    tm_file = os.path.join(base_dir, 'P0deg' + angle_filename + '.CSV')
+    te_file = os.path.join(base_dir, 'P90deg' + angle_filename + '.CSV')
 
-    angle_meas = build_SP(te_file,tm_file,sample_name,[angle],fresnel=True,n1=n_air,n2=n_GaAs,n3=n_air,nuextrema=[numin,numax])
+    angle_meas = build_SP(te_file,tm_file,sample_name,[angle],fresnel=False,n1=n_air,n2=n_GaAs,n3=n_air,nuextrema=[numin,numax])
 
     #add the raw data plot
-    axs[0].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam_raw, label='TE '+str(angle) + '$\degree$',
+    axs[0].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam_raw, label='TE '+str(angle) + '$\degree$ reflection',
                 color=blues[i])
-    axs[0].plot(angle_meas.TM_wavenum, angle_meas.TM_single_beam_raw, label='TM '+str(angle) + '$\degree$',
-                color=reds[i])
-
-    axs[1].plot(angle_meas.TE_wavenum, angle_meas.TE_single_beam, label='TE '+str(angle) + '$\degree$ Fresnel Corrected',
-                color=blues[i])
-    axs[1].plot(angle_meas.TM_wavenum, angle_meas.TM_single_beam, label='TM '+str(angle) + '$\degree$ Fresnel Corrected',
+    axs[0].plot(angle_meas.TM_wavenum, angle_meas.TM_single_beam_raw, label='TM '+str(angle) + '$\degree$ reflection',
                 color=reds[i])
 
     axs_rats[0].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/angle_meas.TE_masked, label= 'TM/TE '+str(angle) + '$\degree$',
-                            color=reds[i])
-
-    axs_rats[1].plot(angle_meas.TM_wavenum_masked, angle_meas.TM_masked/bg_meas.TM_masked, label= 'samp TM '+str(angle) + '$\degree $ / TM background' ,
-                            color=reds[i])
-    axs_rats[1].plot(angle_meas.TE_wavenum_masked, angle_meas.TE_masked/bg_meas.TE_masked, label= 'samp TE '+str(angle) + '$\degree $ / TE background' ,
-                            color=blues[i])
-
-    #calculate the absorption coefficient times path length
-
-    offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
-
-    alpha_ISB= -np.log(angle_meas.TM_masked/angle_meas.TE_masked)+offset
-    axs_fits.plot(angle_meas.TE_wavenum_masked, alpha_ISB, label= str(angle) + '$\degree$',
                             color=reds[i])
 
     if angle==0:
@@ -167,7 +149,6 @@ for i in range(0,len(angles)):
             axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label=r"$TE, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=blues[nuISB_ind])
 
     #transmission per length at 1120 cm^-1
-
 
 plt.figure(fig)
 axs[0].legend()
@@ -196,8 +177,6 @@ save_title = os.path.join(base_dir, sample_name + 'alpha_ISBs' + '.svg')
 plt.savefig(save_title)
 
 plt.figure(fig_abs)
-# fit_abs_plot_title = r"$\alpha(\nu = $" + str(nu_ISB) + r")"
-# axs_abs[1].set_title(fit_abs_plot_title)
 
 axs_abs[0].grid(True)
 axs_abs[1].grid(True)

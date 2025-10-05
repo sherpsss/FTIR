@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
+n_ZnSe = 2.39
 
 
 def calculate_Fresnels(theta_i_deg, n1, n2):
@@ -79,8 +80,14 @@ fig_ent,axs_ent=plot_Fresnel(theta_is, Rp_B, Tp_B, Rs_B, Ts_B, n1_B, n2_B,theta_
 Rp_B, Tp_B, Rs_B, Ts_B, n1_B, n2_B,theta_ts = calculate_Fresnels(theta_is, n_GaAs, n_air)
 fig_ex,axs_ex=plot_Fresnel(theta_is, Rp_B, Tp_B, Rs_B, Ts_B, n1_B, n2_B,theta_ts)
 
+Rp_B, Tp_B, Rs_B, Ts_B, n1_B, n2_B,theta_ts = calculate_Fresnels(theta_is, n_ZnSe, n_GaAs)
+fig_ATR,axs_ATR=plot_Fresnel(theta_is, Rp_B, Tp_B, Rs_B, Ts_B, n1_B, n2_B,theta_ts)
+
 plt.figure(fig_ent)
 plt.show()
 
 plt.figure(fig_ex)
+plt.show()
+
+plt.figure(fig_ATR)
 plt.show()

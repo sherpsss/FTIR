@@ -111,8 +111,8 @@ def build_SP(TEfile,TMfile,sample_name,thetai,fresnel=False,n1=None,n2=None,n3=N
     # try using backgrounds with no sample in the path
     samp_meas.TM_wavenum = tm_wavenum
     samp_meas.TE_wavenum = te_wavenum
-    samp_meas.TM_single_beam = tm_single_beam
-    samp_meas.TE_single_beam = te_single_beam
+    samp_meas.TM_single_beam_raw = tm_single_beam
+    samp_meas.TE_single_beam_raw = te_single_beam
 
     #account for fresnel
     if fresnel:
@@ -125,9 +125,11 @@ def build_SP(TEfile,TMfile,sample_name,thetai,fresnel=False,n1=None,n2=None,n3=N
         print("TP23: " + str(Tp23) + " Ts23: " + str(Ts23))
         #apply to relevant angles
 
-        samp_meas.TM_single_beam = samp_meas.TM_single_beam/(Tp12*Tp23)
-        samp_meas.TE_single_beam = samp_meas.TE_single_beam/(Ts12*Ts23)
-
+        samp_meas.TM_single_beam = samp_meas.TM_single_beam_raw/(Tp12*Tp23)
+        samp_meas.TE_single_beam = samp_meas.TE_single_beam_raw/(Ts12*Ts23)
+    else:
+        samp_meas.TM_single_beam = samp_meas.TM_single_beam_raw
+        samp_meas.TE_single_beam = samp_meas.TE_single_beam_raw
 
     if nuextrema is not None:
         mask_samp = (samp_meas.TE_wavenum > nuextrema[0]) & (samp_meas.TE_wavenum < nuextrema[1])

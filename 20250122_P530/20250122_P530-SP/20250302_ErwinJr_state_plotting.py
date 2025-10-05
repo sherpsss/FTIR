@@ -23,12 +23,16 @@ def generate_MQW_plot(base_dir,base_filename,title=None,states_to_highlight=None
     conduction_bands_str = pd.read_csv(conduction_band_file, header=None)
     cb_data = conduction_bands_str.apply(pd.to_numeric)  # Convert all values to floats
     cb_xs = np.array(cb_data[0])
-    cb_ys = np.array(cb_data[1])
+    cb_ys = np.array(cb_data[1])*1000
+    Emin = np.min(cb_ys)
+    cb_ys = cb_ys - Emin
+
     print("minimum conduction band value: " + str(cb_ys[0]))
     print("conduction band xlen all repeats" + str(max(cb_xs)))
     Es_str = pd.read_csv(energies_file, header=None)
     Es_data = Es_str.apply(pd.to_numeric)
-    Es = np.array(Es_data[0])
+    Es = np.array(Es_data[0])*1000
+    Es = Es - Emin
 
     # Plot
     fig_Es, axs_Es = plt.subplots(figsize=(8, 8))
@@ -46,7 +50,7 @@ def generate_MQW_plot(base_dir,base_filename,title=None,states_to_highlight=None
     axs_Es.tick_params(axis='y', labelsize=ticksize)
 
     axs_Es.set_xlabel(r"Growth direction [Angstroms]", fontsize=axislabelsfont)
-    axs_Es.set_ylabel(r"Energy offset from ${Al}_{0.53}{Ga}_{0.47}As$ CBM [eV]", fontsize=axislabelsfont)
+    axs_Es.set_ylabel(r"Energy-${Ga}_{0.47}{In}_{0.53}As$ CBM [meV]", fontsize=axislabelsfont)
 
     if title is not None:
         axs_Es.set_title(title,fontsize=titlesize)
@@ -60,7 +64,7 @@ def generate_MQW_plot(base_dir,base_filename,title=None,states_to_highlight=None
         E_state = QuantizedState(num=E_ind)
         E_state.WF_xs = wf_xs
         E_state.WF_ys = np.array(wf_data[E_ind + 1])
-        E_state.Prob_ys = E_state.WF_ys*E_state.WF_ys
+        E_state.Prob_ys = (E_state.WF_ys*E_state.WF_ys)*1000 #converts to meV
         E_state.Energy = Es[E_ind]
 
         if psisq_min is not None:
@@ -87,7 +91,7 @@ def generate_MQW_plot(base_dir,base_filename,title=None,states_to_highlight=None
                 opacity = 1.0
                 legend_label = 'filled state'
         # axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity,label=legend_label)
-        axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2 + E_state.Energy,color=plot_color,alpha=opacity)
+        axs_Es.plot(E_state.WF_xs, E_state.Prob_ys*2+ E_state.Energy,color=plot_color,alpha=opacity)
 
     save_title = os.path.join(base_dir, base_filename + '.svg')
 
@@ -125,7 +129,7 @@ titlesize=30
 # legendfont=30
 # ticksize=30
 # titlesize=34
-abs_cutoff = 0.0001
+abs_cutoff = 0.0001*1000
 # special_colors = ['red','blue','lawgreen','darkorange']
 
 # axes_GaAs_larger,fig_GaAs_larger = generate_MQW_plot(sim_dir,GaAs_larger_filename,"Example Sample, GaAs well = " + str(GaAs_width_nm_larger) + " nm, 2 periods",states_to_plot=states_to_plot_GaAs_larger,axislabelsfont=axislabelsfont,legendfont=legendfont,ticksize=ticksize,titlesize=titlesize)

@@ -40,7 +40,7 @@ te_bg_file = os.path.join(bg_dir, 'background_P90deg' + '.CSV')
 _, tm_bg_wavenum, tm_bg_single_beam, _ = load_data(tm_bg_file)
 _, te_bg_wavenum, te_bg_single_beam, _ = load_data(te_bg_file)
 
-bg_meas = SinglePassMeas(ident='background')
+bg_meas = SinglePassMeas(samp=sample_name,thetai=0)
 
 bg_meas.TE_single_beam=te_bg_single_beam
 bg_meas.TM_single_beam=tm_bg_single_beam
@@ -86,7 +86,7 @@ for i in range(0,len(angles)):
     _, tm_wavenum, tm_single_beam, _ = load_data(tm_file)
     _, te_wavenum, te_single_beam, _ = load_data(te_file)
     angle = angle-angle0
-    angle_meas = SinglePassMeas(ident=str(angle))
+    angle_meas = SinglePassMeas(samp=sample_name,thetai=angles[i])
     angle_meas.TM_wavenum = tm_wavenum
     angle_meas.TE_wavenum = te_wavenum
     angle_meas.TM_single_beam = tm_single_beam

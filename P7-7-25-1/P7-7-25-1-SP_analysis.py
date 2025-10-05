@@ -7,32 +7,17 @@ from FTIR_analysis_helpers import build_SP
 from FTIR_analysis_helpers import calculate_Fresnels
 from matplotlib.ticker import MaxNLocator
 
-sample_name = 'P7-7-25-1SP-T'
+sample_name = 'P7-7-25-1SP'
 numax = 3300
 numin = 900
-ap_meas = 40
-gain_meas = 4
-ap_bg = 10
-gain_bg = 2
-Fout = 0.78 #fresnel coefficient in
-Fin = Fout
-nuISBs_check = [992, 1342, 1517]
 
-Lsample = 10 #mm
-tsamp = np.mean([0.449,0.443,0.445,0.438]) #mm
-Nbounces = Lsample/tsamp
-Lpath = 14
-
-# settings_suffix_meas = 'ap-'+str(ap_meas)+'-gain-'+str(gain_meas)
-# settings_suffix_bg = 'ap-'+str(ap_bg)+'-gain-'+str(gain_bg)
-
-#adjust with well thicknesses based on Lodo runsheet
-
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20250828_P7-7-25-1SP-T'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P7-7-25-1/20250808_SP_transmission'
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
-angles = [0,50,60]
+angles = [0,40]
+
+tsamp = 500
 
 # angle0 = 280
 
@@ -67,8 +52,8 @@ axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-tm_bg_file = os.path.join(base_dir, 'bg_end' +'_P0deg' + '.CSV')
-te_bg_file = os.path.join(base_dir, 'bg_end' + '_P90deg' + '.CSV')
+tm_bg_file = os.path.join(base_dir, 'P0deg_' + 'bg' + '.CSV')
+te_bg_file = os.path.join(base_dir,'P90deg_' + 'bg' + '.CSV')
 
 bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
@@ -152,19 +137,9 @@ for i in range(0,len(angles)):
 
         alpha_samp_TE = -np.log(angle_meas.TE_masked/bg_meas.TE_masked)/tsamp
         alpha_samp_TM = -np.log(angle_meas.TM_masked / bg_meas.TM_masked)/tsamp
-        # nuISBs_check = [0.95*nu_ISB,nu_ISB,1.05*nu_ISB]
 
         axs_abs[0].plot(angle_meas.TE_wavenum_masked,alpha_samp_TE,label='TE' + str(angle) + '$\degree$',color=reds[i])
         axs_abs[0].plot(angle_meas.TM_wavenum_masked, alpha_samp_TM,label='TM' + str(angle) + '$\degree$',color=blues[i])
-        for nuISB_ind in range(0,len(nuISBs_check)):
-            nuISB_check = nuISBs_check[nuISB_ind]
-            idx_closest = np.abs(angle_meas.TE_wavenum_masked - nuISB_check).argmin()
-
-            alpha_nu0_TE = alpha_samp_TE[idx_closest] #per mm
-            alpha_nu0_TM = alpha_samp_TM[idx_closest]
-            pathlens = np.linspace(0.0,Lpath,num=50)#per mm
-            axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TM*pathlens),label=r"$TM, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=reds[nuISB_ind])
-            axs_abs[1].plot(pathlens, np.exp(-alpha_nu0_TE * pathlens), label=r"$TE, \nu=$" + str(nuISB_check) + r"${cm}^{-1}$",color=blues[nuISB_ind])
 
     #transmission per length at 1120 cm^-1
 
