@@ -7,9 +7,9 @@ from FTIR_analysis_helpers import build_SP
 from FTIR_analysis_helpers import calculate_Fresnels
 from matplotlib.ticker import MaxNLocator
 
-sample_name = 'P7-7-25-1SP-T'
-numax = 3300
-numin = 900
+sample_name = 'P12-9-25-1-SP'
+numax = 3100
+numin = 825
 ap_meas = 40
 gain_meas = 4
 ap_bg = 10
@@ -19,7 +19,7 @@ Fin = Fout
 nuISBs_check = [992, 1342, 1517]
 
 Lsample = 10 #mm
-tsamp = np.mean([0.248,0.252,0.248]) #mm
+tsamp = np.mean([0.449,0.443,0.445,0.438]) #mm
 Nbounces = Lsample/tsamp
 Lpath = 14
 
@@ -28,11 +28,11 @@ Lpath = 14
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P7-7-25-1/20250828_P7-7-25-1SP-T'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260204_P12-9-25-1-SP'
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
-angles = [0,50,60]
+angles = [0,40,60]
 
 # angle0 = 280
 
@@ -67,8 +67,8 @@ axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-tm_bg_file = os.path.join(base_dir, 'bg_end' +'_P0deg' + '.CSV')
-te_bg_file = os.path.join(base_dir, 'bg_end' + '_P90deg' + '.CSV')
+tm_bg_file = os.path.join(base_dir, 'P0deg_bg' + '.CSV')
+te_bg_file = os.path.join(base_dir, 'P90deg_bg' + '.CSV')
 
 bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
@@ -114,10 +114,10 @@ reds = ['fuchsia','mediumvioletred','crimson','lightpink']
 for i in range(0,len(angles)):
     angle = angles[i]
 
-    angle_filename = 'rot'+ str(angle)+'deg_'
+    angle_filename = 'rot'+ str(angle)+'deg'
 
-    tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
-    te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
+    tm_file = os.path.join(base_dir, 'P0deg_' + angle_filename + '.CSV')
+    te_file = os.path.join(base_dir, 'P90deg_' + angle_filename+ '.CSV')
 
     angle_meas = build_SP(te_file,tm_file,sample_name,[angle],fresnel=True,n1=n_air,n2=n_GaAs,n3=n_air,nuextrema=[numin,numax])
 
@@ -180,6 +180,8 @@ plt.savefig(save_title)
 #                    color='green')
 
 plt.figure(fig_rats)
+axs_rats[0].grid()
+axs_rats[1].grid()
 axs_rats[0].legend()
 axs_rats[0].legend(prop={"size":14})
 axs_rats[1].legend()

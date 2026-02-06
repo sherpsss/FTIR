@@ -7,9 +7,9 @@ from FTIR_analysis_helpers import build_SP
 from FTIR_analysis_helpers import calculate_Fresnels
 from matplotlib.ticker import MaxNLocator
 
-sample_name = 'P7-7-25-1SP-T'
+sample_name = 'P7-7-25-1SP-TT'
 numax = 3300
-numin = 900
+numin = 630
 ap_meas = 40
 gain_meas = 4
 ap_bg = 10
@@ -19,7 +19,7 @@ Fin = Fout
 nuISBs_check = [992, 1342, 1517]
 
 Lsample = 10 #mm
-tsamp = np.mean([0.248,0.252,0.248]) #mm
+tsamp = np.mean([0.173,0.181,0.175]) #mm
 Nbounces = Lsample/tsamp
 Lpath = 14
 
@@ -28,13 +28,15 @@ Lpath = 14
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P7-7-25-1/20250828_P7-7-25-1SP-T'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P7-7-25-1/P7-7-25-1SP-TT/20250926'
 n_air = 1.0
 n_InP = 2.7132  # InP at lambda = 8 um
 n_GaAs = 3.28
-angles = [0,50,60]
+angles = [0,30,50]
 
-# angle0 = 280
+# polarizer angle
+TM_polarizer = 'P364deg'
+TE_polarizer = 'P89deg'
 
 #raw data plots
 fig, axs = plt.subplots(1, 2, figsize=(18, 8))
@@ -67,8 +69,8 @@ axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-tm_bg_file = os.path.join(base_dir, 'bg_end' +'_P0deg' + '.CSV')
-te_bg_file = os.path.join(base_dir, 'bg_end' + '_P90deg' + '.CSV')
+tm_bg_file = os.path.join(base_dir, 'bg_' +TM_polarizer + '_ap75.CSV')
+te_bg_file = os.path.join(base_dir, 'bg_' + TE_polarizer + '_ap75.CSV')
 
 bg_meas = build_SP(te_bg_file, tm_bg_file, 'bg', [0], fresnel=False, nuextrema=[numin, numax])
 
@@ -114,10 +116,12 @@ reds = ['fuchsia','mediumvioletred','crimson','lightpink']
 for i in range(0,len(angles)):
     angle = angles[i]
 
-    angle_filename = 'rot'+ str(angle)+'deg_'
+    angle_filename = 'rot'+ str(angle)+'deg'
+    if angle == 50:
+        angle_filename = angle_filename + '_slight_misalign'
 
-    tm_file = os.path.join(base_dir, angle_filename+'P0deg' + '.CSV')
-    te_file = os.path.join(base_dir, angle_filename+'P90deg' + '.CSV')
+    tm_file = os.path.join(base_dir, TM_polarizer + '_'+ angle_filename + '.CSV')
+    te_file = os.path.join(base_dir, TE_polarizer + '_'+ angle_filename + '.CSV')
 
     angle_meas = build_SP(te_file,tm_file,sample_name,[angle],fresnel=True,n1=n_air,n2=n_GaAs,n3=n_air,nuextrema=[numin,numax])
 
@@ -172,8 +176,10 @@ for i in range(0,len(angles)):
 plt.figure(fig)
 axs[0].legend()
 axs[0].legend(prop={"size":14})
+axs[0].grid(True)
 axs[1].legend()
 axs[1].legend(prop={"size":14})
+axs[1].grid(True)
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
@@ -181,8 +187,10 @@ plt.savefig(save_title)
 
 plt.figure(fig_rats)
 axs_rats[0].legend()
+axs_rats[0].grid(True)
 axs_rats[0].legend(prop={"size":14})
 axs_rats[1].legend()
+axs_rats[1].grid(True)
 axs_rats[1].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + ' ratios' + '.svg')

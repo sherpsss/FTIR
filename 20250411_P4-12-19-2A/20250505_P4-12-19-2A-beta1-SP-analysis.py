@@ -180,6 +180,8 @@ plt.savefig(save_title)
 #                    color='green')
 
 plt.figure(fig_rats)
+axs_rats[0].grid()
+axs_rats[1].grid()
 axs_rats[0].legend()
 axs_rats[0].legend(prop={"size":14})
 axs_rats[1].legend()
