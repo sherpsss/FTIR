@@ -10,7 +10,7 @@ from FTIR_analysis_helpers import fitLorentzPlot
 
 
 
-sample_name = 'P12-9-25-1-MP'
+sample_name = 'P12-9-25-1MP'
 ap_bg = 15
 gain_bg = 2
 att_bg = 'mod'
@@ -22,37 +22,20 @@ settings_suffix_bg = 'att_' + att_bg
 settings_suffix_samp = preamp + '-preamp-matched'
 
 numax = 3100
-numin = 825
+numin = 820
 
-
-#adjust with well thicknesses based on Lodo runsheet
-
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260203_P12-9-25-1-MP'
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260203_P12-9-25-1-MP/20260211'
 bg_dir = base_dir
 
-# tm_file = os.path.join(base_dir, settings_suffix_samp + '-P0deg' + '.CSV')
-# te_file = os.path.join(base_dir, settings_suffix_samp + '-P90deg' + '.CSV')
-tm_file = os.path.join(base_dir, sample_name + '-P0deg-realigned' + '.CSV')
-te_file = os.path.join(base_dir, sample_name + '-P90deg-realigned' + '.CSV')
+tm_file = os.path.join(base_dir, sample_name+ '-P0deg' + '.CSV')
+te_file = os.path.join(base_dir, sample_name+ '-P90deg' + '.CSV')
 
 samp_meas = build_MP(te_file,tm_file,sample_name,nuextrema=[numin,numax])
 
-tm_bg_file = os.path.join(bg_dir,'P0deg-' + 'bg' + '.CSV')
-te_bg_file = os.path.join(bg_dir, 'P90deg-' + 'bg' + '.CSV')
+tm_bg_file = os.path.join(bg_dir,'P0deg_' + 'bg_realigned' + '.CSV')
+te_bg_file = os.path.join(bg_dir, 'P90deg_' + 'bg_realigned' + '.CSV')
 
 bg_meas = build_MP(te_bg_file,tm_bg_file,'no_samp',nuextrema=[numin,numax])
-
-# bg_name = 'no_samp'
-# bg_meas = MultipassMeas(samp=bg_name)
-
-
-# _, tm_bg_wavenum, tm_bg_single_beam, _ = load_data(tm_bg_file)
-# _, te_bg_wavenum, te_bg_single_beam, _ = load_data(te_bg_file)
-#
-# bg_meas.TE_single_beam=te_bg_single_beam
-# bg_meas.TM_single_beam=tm_bg_single_beam
-# bg_meas.TE_wavenum=te_bg_wavenum
-# bg_meas.TM_wavenum=tm_bg_wavenum
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
@@ -91,26 +74,6 @@ axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE bg ' + 'no_sa
 axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label='TM bg' + 'no samp',
                         color='m')
 
-# do the masking
-# mask_samp = (bg_meas.TE_wavenum > numin) & (bg_meas.TE_wavenum < numax)
-
-# bg_meas.TE_masked = bg_meas.TE_single_beam[mask_samp]
-# bg_meas.TM_masked = bg_meas.TM_single_beam[mask_samp]
-# bg_meas.TM_wavenum_masked = bg_meas.TM_wavenum[mask_samp]
-# bg_meas.TE_wavenum_masked = bg_meas.TE_wavenum[mask_samp]
-
-#plot the masked signals
-#
-# axs[0].plot(samp_meas.TE_wavenum_masked, samp_meas.TE_masked, label= 'TE' + ' masked',
-#                         color='cornflowerblue')
-# axs[0].plot(samp_meas.TM_wavenum_masked , samp_meas.TM_masked , label= 'TM' + ' masked',
-#                         color='tomato')
-#
-# axs[0].plot(bg_meas.TE_wavenum_masked, bg_meas.TE_masked, label= 'TE bg ' + bg_name + ' masked',
-#                         color='cadetblue')
-# axs[0].plot(bg_meas.TM_wavenum_masked , bg_meas.TM_masked , label='TM bg ' + bg_name + ' masked',
-#                         color='indigo')
-
 
 axs[1].plot(samp_meas.TM_wavenum_masked, samp_meas.TM_masked / samp_meas.TE_masked,
             label='TM/TE ' + sample_name)
@@ -135,7 +98,7 @@ plt.savefig(save_title)
 
 fig_fits, axs_fits = plt.subplots(figsize=(10, 8))
 axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_fits.set_ylabel(r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}})$",fontsize=12)
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L{path} $",fontsize=12)
 fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 axs_fits.set_title(fit_plot_title)
 axs_fits.grid()
@@ -144,10 +107,15 @@ axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
 offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
 
 alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
-#
-# # axs_fits.plot(samp_meas.TE_wavenum_masked, alpha_ISB, label= r"$\alpha_{ISB}$ per well",
-#                         # color='green')
-axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green')
+axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green',label = r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}}) $")
+
+numins = [1060]
+numaxs = [1670]
+kappa_nu_guesses = [65]
+for i in range(0,len(numins)):
+    nu_range = [numins[i],numaxs[i]]
+    kappa_nu_guess = kappa_nu_guesses[i]
+    fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
 
 plt.figure(fig_fits)
 axs_fits.legend()

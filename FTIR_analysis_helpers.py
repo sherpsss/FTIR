@@ -4,15 +4,36 @@ import os
 import numpy as np
 import scipy.optimize as opt
 
-def load_data(filename):
-    data = pd.read_csv(filename, header=None)
-    wavenumber = np.array(data[0])# First column: wavenumber
-    single_beam = np.array(data[1])  # Second column: transmission
-    wavelength = 1e4 / wavenumber  # Convert wavenumber (cm^-1) to wavelength (µm)
+import pandas as pd
+import os
+import numpy as np
+import re
+from datetime import datetime
 
-    # Extract a label from the filename (remove path and extension)
+def load_data(filename, return_date=False):
+    data = pd.read_csv(filename, header=None)
+    wavenumber = np.array(data[0], dtype=float)
+    single_beam = np.array(data[1], dtype=float)
+    wavelength = 1e4 / wavenumber  # cm^-1 -> µm
+
     label = os.path.splitext(os.path.basename(filename))[0]
 
+    parsed_date = None
+
+    if return_date:
+        # Find all 8-digit sequences in the full path
+        matches = re.findall(r'\d{8}', filename)
+
+        if matches:
+            date_str = matches[-1]  # right-most wins
+            try:
+                parsed_date = datetime.strptime(date_str, "%Y%m%d").date()
+            except ValueError:
+                parsed_date = None
+        else:
+            parsed_date = None
+
+        return wavelength, wavenumber, single_beam, label, parsed_date
     return wavelength, wavenumber, single_beam, label
 
 class MultipassMeas:
@@ -179,7 +200,7 @@ def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits,nu_fit_plot
                                       bounds=fitBounds)
 
     # fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
-    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}$" % (fitLorentz[0]) + "\n" + r"$\Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[1]*2)
+    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}$" % (fitLorentz[0]) + "\n" + r"$\Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[1]*2) + "\n" r"$\Delta \nu / \nu = %0.2f percent$" % ((fitLorentz[1]/fitLorentz[0])*2*100)
 
     if nu_fit_plot_range is None:
         nu_fit_plot= wavenum
