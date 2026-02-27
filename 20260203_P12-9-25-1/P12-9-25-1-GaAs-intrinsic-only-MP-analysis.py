@@ -8,39 +8,23 @@ from FTIR_analysis_helpers import build_MP
 from matplotlib.ticker import MaxNLocator
 from FTIR_analysis_helpers import fitLorentzPlot
 
-
-
-sample_name = 'P12-9-25-2MP'
-background_samp_name = 'P12-9-25-1-GaAs-intrinsic-only-MP'
-ap_bg = 10
-gain_bg = 0
-att_bg = 'mod'
-preamp = 'PA101'
-
-settings_suffix_bg = 'att_' + att_bg
-
-settings_suffix_samp = preamp + '-preamp-matched'
+sample_name = 'P12-9-25-1-GaAs-intrinsic-only-MP'
 
 numax = 3100
-numin = 825
+numin = 820
 
-#adjust with well thicknesses based on Lodo runsheet
+base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P12-9-25-1-intrinsic-GaAs-only-MP'
+bg_dir = base_dir
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260205_P12-9-25-2-MP/20260211'
-bg_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P12-9-25-1-intrinsic-GaAs-only-MP'
-
-tm_file = os.path.join(base_dir, sample_name + '-P0deg_novislight' + '.CSV')
-te_file = os.path.join(base_dir, sample_name + '-P90deg_novislight' + '.CSV')
+tm_file = os.path.join(base_dir, sample_name+ '-P0deg' + '.CSV')
+te_file = os.path.join(base_dir, sample_name+ '-P90deg' + '.CSV')
 
 samp_meas = build_MP(te_file,tm_file,sample_name,nuextrema=[numin,numax])
 
-# tm_bg_file = os.path.join(bg_dir,'P0deg_' + 'bg_realigned' + '.CSV')
-# te_bg_file = os.path.join(bg_dir, 'P90deg_' + 'bg_realigned' + '.CSV')
+tm_bg_file = os.path.join(bg_dir,'P0deg_' + 'bg' + '.CSV')
+te_bg_file = os.path.join(bg_dir, 'P90deg_' + 'bg' + '.CSV')
 
-tm_bg_file = os.path.join(bg_dir, background_samp_name+ '-P0deg' + '.CSV')
-te_bg_file = os.path.join(bg_dir, background_samp_name+ '-P90deg' + '.CSV')
-
-bg_meas = build_MP(te_bg_file,tm_bg_file,background_samp_name,nuextrema=[numin,numax])
+bg_meas = build_MP(te_bg_file,tm_bg_file,'no_samp',nuextrema=[numin,numax])
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
@@ -69,42 +53,41 @@ axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[2].grid()
 axs[2].xaxis.set_major_locator(MaxNLocator(integer=True))
 
-axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE ' + samp_meas.name,
+axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE',
                         color='blue')
-axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam, label= 'TM' + samp_meas.name,
+axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM',
                         color='red')
 
-axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE' + bg_meas.name,
+axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE bg ' + 'no_samp',
                         color='c')
-axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label='TM ' + bg_meas.name,
+axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label='TM bg' + 'no samp',
                         color='m')
+
 
 axs[1].plot(samp_meas.TM_wavenum_masked, samp_meas.TM_masked / samp_meas.TE_masked,
             label='TM/TE ' + sample_name)
 axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked / bg_meas.TE_masked,
-            label='TM/TE ' + bg_meas.name)
+            label='TM/TE ' + 'bg')
 
 axs[2].plot(samp_meas.TM_wavenum_masked, samp_meas.TM_masked / bg_meas.TM_masked,
-            label='TM' + samp_meas.name + '/ TM ' + bg_meas.name)
+            label='TM samp/ TM bg')
 axs[2].plot(samp_meas.TE_wavenum_masked, samp_meas.TE_masked / bg_meas.TE_masked,
-            label='TE' + samp_meas.name + '/ TE ' + bg_meas.name)
+            label='TE samp/ TE bg')
 
 plt.figure(fig)
 axs[0].legend()
-axs[0].legend(prop={"size":10})
+axs[0].legend(prop={"size":14})
 axs[1].legend()
-axs[1].legend(prop={"size":10})
+axs[1].legend(prop={"size":14})
 axs[2].legend()
-axs[2].legend(prop={"size":10})
+axs[2].legend(prop={"size":14})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
 
 fig_fits, axs_fits = plt.subplots(figsize=(10, 8))
 axs_fits.set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs_fits.set_ylabel(r"$\alpha_{ISB} \times L_{path}$",fontsize=12)
-# axs_fits.set_ylabel(r"$(TMs/TEs)/(TMB/TEB)$",fontsize=12)
-
+axs_fits.set_ylabel(r"$\alpha_{ISB} \times L{path} $",fontsize=12)
 fit_plot_title = sample_name + " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax)
 axs_fits.set_title(fit_plot_title)
 axs_fits.grid()
@@ -113,12 +96,11 @@ axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
 offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
 
 alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
-
 axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green',label = r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}}) $")
 
-numins = [948,1211]
-numaxs = [1211,1339]
-kappa_nu_guesses = [50,30]
+numins = [1060]
+numaxs = [1670]
+kappa_nu_guesses = [65]
 for i in range(0,len(numins)):
     nu_range = [numins[i],numaxs[i]]
     kappa_nu_guess = kappa_nu_guesses[i]
