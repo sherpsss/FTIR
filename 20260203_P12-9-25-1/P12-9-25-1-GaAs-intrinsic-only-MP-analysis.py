@@ -24,7 +24,7 @@ samp_meas = build_MP(te_file,tm_file,sample_name,nuextrema=[numin,numax])
 tm_bg_file = os.path.join(bg_dir,'P0deg_' + 'bg' + '.CSV')
 te_bg_file = os.path.join(bg_dir, 'P90deg_' + 'bg' + '.CSV')
 
-bg_meas = build_MP(te_bg_file,tm_bg_file,'no_samp',nuextrema=[numin,numax])
+bg_meas = build_MP(te_bg_file,tm_bg_file,'no-samp',nuextrema=[numin,numax])
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 8))
 
@@ -44,7 +44,7 @@ axs[1].set_ylabel('Polarization Transmission Ratio',fontsize=12)
 fit_plot_title = " SNR mask " + str(numin) + r"$ < \nu < $" + str(numax) + r" ${cm}^{-1}$"
 axs[2].set_title(fit_plot_title)
 axs[2].set_xlabel('Wavenumber (cm^-1)',fontsize=12)
-axs[2].set_ylabel('Samp over bg transmission ratios',fontsize=12)
+axs[2].set_ylabel(samp_meas.name + ' / ' + bg_meas.name + ' transmission ratios',fontsize=12)
 
 axs[0].grid()
 axs[0].xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -53,14 +53,14 @@ axs[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 axs[2].grid()
 axs[2].xaxis.set_major_locator(MaxNLocator(integer=True))
 
-axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE',
+axs[0].plot(samp_meas.TE_wavenum, samp_meas.TE_single_beam, label= 'TE' + samp_meas.name,
                         color='blue')
-axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM',
+axs[0].plot(samp_meas.TM_wavenum , samp_meas.TM_single_beam , label= 'TM' + samp_meas.name,
                         color='red')
 
-axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE bg ' + 'no_samp',
+axs[0].plot(bg_meas.TE_wavenum, bg_meas.TE_single_beam, label= 'TE ' + bg_meas.name,
                         color='c')
-axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label='TM bg' + 'no samp',
+axs[0].plot(bg_meas.TM_wavenum , bg_meas.TM_single_beam , label='TM ' + bg_meas.name,
                         color='m')
 
 
@@ -70,17 +70,17 @@ axs[1].plot(bg_meas.TM_wavenum_masked, bg_meas.TM_masked / bg_meas.TE_masked,
             label='TM/TE ' + 'bg')
 
 axs[2].plot(samp_meas.TM_wavenum_masked, samp_meas.TM_masked / bg_meas.TM_masked,
-            label='TM samp/ TM bg')
+            label='TM ' + samp_meas.name + '/ TM ' + bg_meas.name)
 axs[2].plot(samp_meas.TE_wavenum_masked, samp_meas.TE_masked / bg_meas.TE_masked,
-            label='TE samp/ TE bg')
+            label='TE ' + samp_meas.name + ' / TE ' + bg_meas.name)
 
 plt.figure(fig)
 axs[0].legend()
-axs[0].legend(prop={"size":14})
+axs[0].legend(prop={"size":10})
 axs[1].legend()
-axs[1].legend(prop={"size":14})
+axs[1].legend(prop={"size":10})
 axs[2].legend()
-axs[2].legend(prop={"size":14})
+axs[2].legend(prop={"size":10})
 plt.tight_layout()
 save_title = os.path.join(base_dir, sample_name + 'raw scans and ratios' + '.svg')
 plt.savefig(save_title)
@@ -96,15 +96,22 @@ axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
 offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
 
 alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
-axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green',label = r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}}) $")
 
-numins = [1060]
-numaxs = [1670]
-kappa_nu_guesses = [65]
-for i in range(0,len(numins)):
-    nu_range = [numins[i],numaxs[i]]
-    kappa_nu_guess = kappa_nu_guesses[i]
-    fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
+axs_fits.plot(
+    samp_meas.TM_wavenum_masked,
+    alpha_ISB,
+    color='green',
+    label=rf"$-\ln \left(\frac{{I_{{{samp_meas.name},TM}}}}{{I_{{{samp_meas.name},TE}}}}\right)"
+          rf"+ \ln \left(\frac{{I_{{{bg_meas.name},TM}}}}{{I_{{{bg_meas.name},TE}}}}\right)$"
+)
+
+# numins = [1060]
+# numaxs = [1670]
+# kappa_nu_guesses = [65]
+# for i in range(0,len(numins)):
+#     nu_range = [numins[i],numaxs[i]]
+#     kappa_nu_guess = kappa_nu_guesses[i]
+#     fitLorentzParams = fitLorentzPlot(nu_range, kappa_nu_guess,samp_meas.TE_wavenum_masked, alpha_ISB, axs_fits)
 
 plt.figure(fig_fits)
 axs_fits.legend()

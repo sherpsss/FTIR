@@ -114,11 +114,18 @@ offset = np.log(bg_meas.TM_masked/bg_meas.TE_masked)
 
 alpha_ISB= -np.log(samp_meas.TM_masked/samp_meas.TE_masked)+offset
 
-axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green',label = r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}}) $")
+axs_fits.plot(
+    samp_meas.TM_wavenum_masked,
+    alpha_ISB,
+    color='green',
+    label=rf"$-\ln \left(\frac{{I_{{{samp_meas.name},TM}}}}{{I_{{{samp_meas.name},TE}}}}\right)"
+          rf"+ \ln \left(\frac{{I_{{{bg_meas.name},TM}}}}{{I_{{{bg_meas.name},TE}}}}\right)$"
+)
+# axs_fits.plot(samp_meas.TM_wavenum_masked, alpha_ISB, color='green',label = r"$-\ln (\frac{I_{out,TM}}{I_{out,TE}}) + \ln(\frac{I_{bg,TM}}{I_{bg,TE}}) $")
 
-numins = [948,1211]
-numaxs = [1211,1339]
-kappa_nu_guesses = [50,30]
+numins = [948,1270]
+numaxs = [1211,1594]
+kappa_nu_guesses = [50,100]
 for i in range(0,len(numins)):
     nu_range = [numins[i],numaxs[i]]
     kappa_nu_guess = kappa_nu_guesses[i]

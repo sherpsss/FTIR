@@ -164,6 +164,9 @@ def build_SP(TEfile,TMfile,sample_name,thetai,fresnel=False,n1=None,n2=None,n3=N
 def fitFnLorentz(nu, nuo, kappanuhalf, A, B):
     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2)
 
+# def fitFnDoubleLorentz(nu, nuo, kappanuhalf, A, B):
+#     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2) #update function
+
 def fitFnNormal(nu, nuo, sigma, A, B):
     return A + (B/(sigma*np.sqrt(2*np.pi)))*np.exp((-nu+nuo)/(2*sigma**2))
 
@@ -184,11 +187,6 @@ def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits,nu_fit_plot
     fitGuess = (nu0_guess, kappanu_guess, A_guess,B_guess)
 
     nu0_bounds = [np.min(wavenum_fit),np.max(wavenum_fit)]
-    # kappanu_bounds = [0,np.max(wavenum_fit) - np.min(wavenum_fit)]
-    # A_bounds = [-2 * np.abs(np.min(alpha_ISB)),2 * np.abs(np.min(alpha_ISB))]
-    # B_bounds = [np.max(np.abs(alpha_ISB_select)) / 4,np.max(np.abs(alpha_ISB_select)) * 2]
-    # fitBounds = ([nu0_bounds[0], kappanu_bounds[0], A_bounds[0], B_bounds[0]],
-    #              [nu0_bounds[1],kappanu_bounds[1],A_bounds[1], B_bounds[1]])
 
     kappanu_bounds = [0,np.max(wavenum_fit) - np.min(wavenum_fit)]
     A_bounds = [-np.Infinity,np.Infinity]
