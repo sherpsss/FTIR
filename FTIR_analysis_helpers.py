@@ -3,12 +3,9 @@ import pandas as pd
 import os
 import numpy as np
 import scipy.optimize as opt
-
-import pandas as pd
-import os
-import numpy as np
 import re
 from datetime import datetime
+from dataclasses import dataclass, field
 
 def load_data(filename, return_date=False):
     data = pd.read_csv(filename, header=None)
@@ -161,54 +158,143 @@ def build_SP(TEfile,TMfile,sample_name,thetai,fresnel=False,n1=None,n2=None,n3=N
 
     return samp_meas
 
+@dataclass
+class FitResult:
+    nu0s:    np.ndarray  # shape (N,) — fitted center wavenumbers
+    kappas:  np.ndarray  # shape (N,) — fitted HWHM for each peak
+    A:       float       # fitted baseline offset
+    Bs:      np.ndarray  # shape (N,) — fitted amplitudes
+    cov:     np.ndarray  # covariance matrix from curve_fit
+    n_peaks: int
+    nu_range: list       # [nu_min, nu_max] window used for fitting
+
+
 def fitFnLorentz(nu, nuo, kappanuhalf, A, B):
     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2)
 
-# def fitFnDoubleLorentz(nu, nuo, kappanuhalf, A, B):
-#     return A + ((B/np.pi) * kappanuhalf) / ((nu - nuo) ** 2 + kappanuhalf ** 2) #update function
+
+def fitFnNLorentz(nu, *params):
+    # params: [nu0_1, kappa_1, B_1,  nu0_2, kappa_2, B_2,  ...,  A]
+    A = params[-1]
+    n_peaks = (len(params) - 1) // 3
+    result = A
+    for i in range(n_peaks):
+        nu0, kappa, B = params[3*i], params[3*i + 1], params[3*i + 2]
+        result = result + (B/np.pi * kappa) / ((nu - nu0)**2 + kappa**2)
+    return result
 
 def fitFnNormal(nu, nuo, sigma, A, B):
     return A + (B/(sigma*np.sqrt(2*np.pi)))*np.exp((-nu+nuo)/(2*sigma**2))
 
-def maskFit(nu_range,wavenum,alpha_ISB):
+def maskFit(nu_range, wavenum, alpha_ISB):
     mask_fit = (wavenum > nu_range[0]) & (wavenum < nu_range[1])
     alpha_ISB_select = alpha_ISB[mask_fit]
     wavenum_fit = wavenum[mask_fit]
-    return alpha_ISB_select,wavenum_fit
+    return alpha_ISB_select, wavenum_fit
 
-def fitLorentzPlot(nu_range,kappanu_guess,wavenum,alpha_ISB,axs_fits,nu_fit_plot_range=None):
 
-    alpha_ISB_select,wavenum_fit = maskFit(nu_range,wavenum,alpha_ISB)
+def fit_lorentz(nu_range, nu0_guess, kappa_guess, wavenum, alpha_ISB,
+                A_guess=None, B_guess=None):
+    alpha_ISB_select, wavenum_fit = maskFit(nu_range, wavenum, alpha_ISB)
 
-    #calculate the fit guesses
-    nu0_guess = wavenum_fit[np.argmax(alpha_ISB_select)]
-    A_guess = alpha_ISB_select[-1]
-    B_guess = np.max(alpha_ISB_select) - np.min(alpha_ISB_select)
-    fitGuess = (nu0_guess, kappanu_guess, A_guess,B_guess)
+    if A_guess is None:
+        A_guess = alpha_ISB_select[-1]
+    if B_guess is None:
+        B_guess = np.max(alpha_ISB_select) - np.min(alpha_ISB_select)
 
-    nu0_bounds = [np.min(wavenum_fit),np.max(wavenum_fit)]
+    p0 = [nu0_guess, kappa_guess, A_guess, B_guess]
+    nu_width = nu_range[1] - nu_range[0]
+    bounds = ([nu_range[0], 0,       -np.inf, 0      ],
+              [nu_range[1], nu_width, np.inf,  np.inf ])
 
-    kappanu_bounds = [0,np.max(wavenum_fit) - np.min(wavenum_fit)]
-    A_bounds = [-np.Infinity,np.Infinity]
-    B_bounds = [0,np.Infinity]
-    fitBounds = ([nu0_bounds[0], kappanu_bounds[0], A_bounds[0], B_bounds[0]],
-                 [nu0_bounds[1],kappanu_bounds[1],A_bounds[1], B_bounds[1]])
-    #
-    fitLorentz, trash = opt.curve_fit(fitFnLorentz, wavenum_fit, alpha_ISB_select, p0=fitGuess,
-                                      bounds=fitBounds)
+    params, cov = opt.curve_fit(fitFnLorentz, wavenum_fit, alpha_ISB_select,
+                                p0=p0, bounds=bounds)
+    return FitResult(nu0s=np.array([params[0]]), kappas=np.array([params[1]]),
+                     A=params[2], Bs=np.array([params[3]]),
+                     cov=cov, n_peaks=1, nu_range=nu_range)
 
-    # fit_label = r"$\nu_0 = %0.2f {cm}^{-1}, \Delta \nu = %0.2f {cm}^{-1},A = %0.2f [units unknown], B= %0.2f $" % (fitLorentz[0], fitLorentz[1]*2,fitLorentz[2],fitLorentz[3])
-    fit_label = r"$\nu_0 = %0.2f {cm}^{-1}$" % (fitLorentz[0]) + "\n" + r"$\Delta \nu = %0.2f {cm}^{-1}$" % (fitLorentz[1]*2) + "\n" r"$\Delta \nu / \nu = %0.2f percent$" % ((fitLorentz[1]/fitLorentz[0])*2*100)
 
+def fit_nlorentz(nu_range, nu0_guesses, kappa_guesses, wavenum, alpha_ISB,
+                 A_guess=None, B_guesses=None):
+    alpha_ISB_select, wavenum_fit = maskFit(nu_range, wavenum, alpha_ISB)
+    n = len(nu0_guesses)
+
+    if A_guess is None:
+        A_guess = alpha_ISB_select[-1]
+    if B_guesses is None:
+        peak_height = np.max(alpha_ISB_select) - np.min(alpha_ISB_select)
+        B_guesses = [peak_height / n] * n
+
+    # pack as [nu0_1, kappa_1, B_1,  nu0_2, kappa_2, B_2,  ...,  A]
+    p0 = []
+    for i in range(n):
+        p0 += [nu0_guesses[i], kappa_guesses[i], B_guesses[i]]
+    p0.append(A_guess)
+
+    nu_width = nu_range[1] - nu_range[0]
+    lower, upper = [], []
+    for _ in range(n):
+        lower += [nu_range[0], 0,        0      ]
+        upper += [nu_range[1], nu_width, np.inf ]
+    lower.append(-np.inf)
+    upper.append(np.inf)
+
+    params, cov = opt.curve_fit(fitFnNLorentz, wavenum_fit, alpha_ISB_select,
+                                p0=p0, bounds=(lower, upper))
+
+    nu0s   = np.array([params[3*i]     for i in range(n)])
+    kappas = np.array([params[3*i + 1] for i in range(n)])
+    Bs     = np.array([params[3*i + 2] for i in range(n)])
+    return FitResult(nu0s=nu0s, kappas=kappas, A=params[-1], Bs=Bs,
+                     cov=cov, n_peaks=n, nu_range=nu_range)
+
+
+def plot_lorentz_fit(fit_result, wavenum, axs, nu_fit_plot_range=None):
     if nu_fit_plot_range is None:
-        nu_fit_plot= wavenum
+        nu_plot = wavenum
     else:
-        trash,nu_fit_plot=maskFit(nu_fit_plot_range,wavenum,alpha_ISB)
-    axs_fits.plot(nu_fit_plot, [fitFnLorentz(nu, *fitLorentz) for nu in nu_fit_plot],
-                  linewidth=1,
-                  label=fit_label)
+        mask = (wavenum > nu_fit_plot_range[0]) & (wavenum < nu_fit_plot_range[1])
+        nu_plot = wavenum[mask]
 
-    return fitLorentz
+    # build full combined params: [nu0_1, kappa_1, B_1, ..., A]
+    params = []
+    for i in range(fit_result.n_peaks):
+        params += [fit_result.nu0s[i], fit_result.kappas[i], fit_result.Bs[i]]
+    params.append(fit_result.A)
+
+    # for N > 1: plot each individual component (baseline + single peak) as dashed
+    if fit_result.n_peaks > 1:
+        for i in range(fit_result.n_peaks):
+            nu0, kappa = fit_result.nu0s[i], fit_result.kappas[i]
+            component_params = [nu0, kappa, fit_result.A, fit_result.Bs[i]]
+            peak_label = (
+                r"$\nu_0 = %.2f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
+                + r"$\Delta\nu = %.2f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
+                + r"$\Delta\nu/\nu = %.2f\%%$" % (kappa / nu0 * 2 * 100)
+            )
+            axs.plot(nu_plot, [fitFnLorentz(nu, *component_params) for nu in nu_plot],
+                     linewidth=1, linestyle='--', label=peak_label)
+        combined_label = 'combined fit'
+    else:
+        nu0, kappa = fit_result.nu0s[0], fit_result.kappas[0]
+        combined_label = (
+            r"$\nu_0 = %.2f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
+            + r"$\Delta\nu = %.2f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
+            + r"$\Delta\nu/\nu = %.2f\%%$" % (kappa / nu0 * 2 * 100)
+        )
+
+    axs.plot(nu_plot, [fitFnNLorentz(nu, *params) for nu in nu_plot],
+             linewidth=1, label=combined_label)
+
+
+def fitLorentzPlot(nu_range, kappanu_guess, wavenum, alpha_ISB, axs_fits,
+                   nu_fit_plot_range=None):
+    """Backwards-compatible wrapper around fit_lorentz + plot_lorentz_fit."""
+    alpha_ISB_select, wavenum_fit = maskFit(nu_range, wavenum, alpha_ISB)
+    nu0_guess = wavenum_fit[np.argmax(alpha_ISB_select)]
+    result = fit_lorentz(nu_range, nu0_guess, kappanu_guess, wavenum, alpha_ISB)
+    plot_lorentz_fit(result, wavenum, axs_fits, nu_fit_plot_range)
+    return np.array([result.nu0s[0], result.kappas[0], result.A, result.Bs[0]])
 
 def fitNormalPlot(nu_range,mu_guess,sigma_guess,wavenum,alpha_ISB,axs_fits):
 

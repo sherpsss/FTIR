@@ -1,14 +1,12 @@
-import os
-# import scipy
+
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import matplotlib.pyplot as plt
 import numpy as np
 from FTIR_analysis_helpers import MultipassMeas
 from FTIR_analysis_helpers import load_data
 from FTIR_analysis_helpers import build_MP
 from matplotlib.ticker import MaxNLocator
-from FTIR_analysis_helpers import fitLorentzPlot
-
-
 
 sample_name = 'P12-9-25-2MP'
 background_samp_name = 'P12-9-25-1-GaAs-intrinsic-only-MP'
@@ -26,8 +24,8 @@ numin = 825
 
 #adjust with well thicknesses based on Lodo runsheet
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260205_P12-9-25-2-MP/20260211'
-bg_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/P12-9-25-1-intrinsic-GaAs-only-MP'
+base_dir = r'C:\Users\sp6497_a\OneDrive - Princeton University\20260205_P12-9-25-2-MP\20260211'
+bg_dir = r'C:\Users\sp6497_a\OneDrive - Princeton University\P12-9-25-1-intrinsic-GaAs-only-MP'
 
 tm_file = os.path.join(base_dir, sample_name + '-P0deg_novislight' + '.CSV')
 te_file = os.path.join(base_dir, sample_name + '-P90deg_novislight' + '.CSV')
