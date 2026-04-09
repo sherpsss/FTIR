@@ -76,7 +76,7 @@ axs_fits.grid()
 axs_fits.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 axs_fits.plot(
-    wavenum, alpha_ISB, color='green',
+    wavenum, alpha_ISB, color='black',
     label=rf"$-\ln \left(\frac{{I_{{{samp_meas.name},TM}}}}{{I_{{{samp_meas.name},TE}}}}\right)"
           rf"+ \ln \left(\frac{{I_{{{bg_meas.name},TM}}}}{{I_{{{bg_meas.name},TE}}}}\right)$"
 )

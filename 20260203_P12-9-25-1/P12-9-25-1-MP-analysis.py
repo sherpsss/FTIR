@@ -1,5 +1,5 @@
-import os
-# import scipy
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import matplotlib.pyplot as plt
 import numpy as np
 from FTIR_analysis_helpers import MultipassMeas
@@ -24,7 +24,7 @@ settings_suffix_samp = preamp + '-preamp-matched'
 numax = 3100
 numin = 820
 
-base_dir = '/Users/srsplatt/Library/Mobile Documents/com~apple~CloudDocs/Princeton/Gmachl Research/20260203_P12-9-25-1-MP/20260211'
+base_dir = r'C:\Users\sp6497_a\OneDrive - Princeton University\20260203_P12-9-25-1-MP\20260211'
 bg_dir = base_dir
 
 tm_file = os.path.join(base_dir, sample_name+ '-P0deg' + '.CSV')
