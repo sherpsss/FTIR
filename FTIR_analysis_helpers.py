@@ -126,7 +126,8 @@ def fit_nlorentz(nu_range, nu0_guesses, kappa_guesses, wavenum, alpha_ISB,
 
 # ── plot helper ───────────────────────────────────────────────────────────────
 
-def plot_lorentz_fit(fit_result, wavenum, axs, nu_fit_plot_range=None):
+def plot_lorentz_fit(fit_result, wavenum, axs, nu_fit_plot_range=None, lw=1.0,
+                     component_colors=None, combined_color=None):
     if nu_fit_plot_range is None:
         nu_plot = wavenum
     else:
@@ -144,23 +145,25 @@ def plot_lorentz_fit(fit_result, wavenum, axs, nu_fit_plot_range=None):
             nu0, kappa       = fit_result.nu0s[i], fit_result.kappas[i]
             component_params = [nu0, kappa, fit_result.A, fit_result.Bs[i]]
             peak_label       = (
-                r"$\nu_0 = %.2f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
-                + r"$\Delta\nu = %.2f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
-                + r"$\Delta\nu/\nu = %.2f\%%$" % (kappa / nu0 * 2 * 100)
+                r"$\nu_0 = %.1f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
+                + r"$\Delta\nu = %.1f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
+                + r"$\Delta\nu/\nu = %.1f\%%$" % (kappa / nu0 * 2 * 100)
             )
+            color_kw = {'color': component_colors[i]} if component_colors is not None else {}
             axs.plot(nu_plot, [fitFnLorentz(nu, *component_params) for nu in nu_plot],
-                     linewidth=1, linestyle='--', label=peak_label)
+                     linewidth=lw, linestyle='--', label=peak_label, **color_kw)
         combined_label = 'combined fit'
     else:
         nu0, kappa     = fit_result.nu0s[0], fit_result.kappas[0]
         combined_label = (
-            r"$\nu_0 = %.2f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
-            + r"$\Delta\nu = %.2f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
-            + r"$\Delta\nu/\nu = %.2f\%%$" % (kappa / nu0 * 2 * 100)
+            r"$\nu_0 = %.1f\ \mathrm{cm}^{-1}$" % nu0 + "\n"
+            + r"$\Delta\nu = %.1f\ \mathrm{cm}^{-1}$" % (kappa * 2) + "\n"
+            + r"$\Delta\nu/\nu = %.1f\%%$" % (kappa / nu0 * 2 * 100)
         )
 
+    combined_color_kw = {'color': combined_color} if combined_color is not None else {}
     axs.plot(nu_plot, [fitFnNLorentz(nu, *params) for nu in nu_plot],
-             linewidth=1, label=combined_label)
+             linewidth=lw, label=combined_label, linestyle='--', **combined_color_kw)
 
 
 # ── Fresnel coefficients ──────────────────────────────────────────────────────
@@ -192,6 +195,26 @@ def calculate_Fresnels(theta_i_deg, n1, n2):
 
 class MeasurementBase:
 
+    def _init_arrays(self, tm_wavenum, te_wavenum, tm_single_beam, te_single_beam, nuextrema):
+        """Set all shared spectral attributes. Called by subclass __init__ after any
+        polarization-specific processing (e.g. Fresnel correction) is done."""
+        self.TM_wavenum     = tm_wavenum
+        self.TE_wavenum     = te_wavenum
+        self.TM_single_beam = tm_single_beam
+        self.TE_single_beam = te_single_beam
+
+        self.TM_masked         = None
+        self.TE_masked         = None
+        self.TM_wavenum_masked = None
+        self.TE_wavenum_masked = None
+
+        if nuextrema is not None:
+            mask = (te_wavenum > nuextrema[0]) & (te_wavenum < nuextrema[1])
+            self.TE_masked         = te_single_beam[mask]
+            self.TM_masked         = tm_single_beam[mask]
+            self.TM_wavenum_masked = tm_wavenum[mask]
+            self.TE_wavenum_masked = te_wavenum[mask]
+
     def alpha_ISB(self, background):
         """Return (wavenum, alpha_ISB) computed relative to a background measurement."""
         offset = np.log(background.TM_masked / background.TE_masked)
@@ -220,7 +243,7 @@ class MeasurementBase:
         axs.plot(self.TE_wavenum_masked, self.TM_masked / self.TE_masked,
                  label=f'TM/TE {self.name}')
 
-    def plot_alpha_ISB(self, background, axs, label=None):
+    def plot_alpha_ISB(self, background, axs, label=None,add_label=True,lw=1.0):
         """Compute and plot alpha_ISB relative to background."""
         wavenum, alpha = self.alpha_ISB(background)
         if label is None:
@@ -228,11 +251,16 @@ class MeasurementBase:
                 rf"$-\ln \left(\frac{{I_{{{self.name},TM}}}}{{I_{{{self.name},TE}}}}\right)"
                 rf"+ \ln \left(\frac{{I_{{{background.name},TM}}}}{{I_{{{background.name},TE}}}}\right)$"
             )
-        axs.plot(wavenum, alpha, label=label)
+        if add_label:
+            axs.plot(wavenum, alpha, label=label, linewidth=lw)
+        else:
+            axs.plot(wavenum, alpha, linewidth=lw)
 
-    def plot_fit(self, fit_result, axs, nu_fit_plot_range=None):
+    def plot_fit(self, fit_result, axs, nu_fit_plot_range=None, lw=1.0,
+                component_colors=None, combined_color=None):
         """Plot a FitResult over this measurement's masked wavenumber range."""
-        plot_lorentz_fit(fit_result, self.TE_wavenum_masked, axs, nu_fit_plot_range)
+        plot_lorentz_fit(fit_result, self.TE_wavenum_masked, axs, nu_fit_plot_range,
+                         lw=lw, component_colors=component_colors, combined_color=combined_color)
 
 
 # ── measurement subclasses ────────────────────────────────────────────────────
@@ -241,24 +269,8 @@ class MultipassMeas(MeasurementBase):
     def __init__(self, TEfile, TMfile, name, nuextrema=None):
         _, tm_wavenum, tm_single_beam, _ = load_data(TMfile)
         _, te_wavenum, te_single_beam, _ = load_data(TEfile)
-
-        self.name           = name
-        self.TM_wavenum     = tm_wavenum
-        self.TE_wavenum     = te_wavenum
-        self.TM_single_beam = tm_single_beam
-        self.TE_single_beam = te_single_beam
-
-        self.TM_masked         = None
-        self.TE_masked         = None
-        self.TM_wavenum_masked = None
-        self.TE_wavenum_masked = None
-
-        if nuextrema is not None:
-            mask = (te_wavenum > nuextrema[0]) & (te_wavenum < nuextrema[1])
-            self.TE_masked         = te_single_beam[mask]
-            self.TM_masked         = tm_single_beam[mask]
-            self.TM_wavenum_masked = tm_wavenum[mask]
-            self.TE_wavenum_masked = te_wavenum[mask]
+        self.name = name
+        self._init_arrays(tm_wavenum, te_wavenum, tm_single_beam, te_single_beam, nuextrema)
 
 
 class SinglePassMeas(MeasurementBase):
@@ -267,10 +279,8 @@ class SinglePassMeas(MeasurementBase):
         _, tm_wavenum, tm_single_beam, _ = load_data(TMfile)
         _, te_wavenum, te_single_beam, _ = load_data(TEfile)
 
-        self.name            = name
-        self.thetai          = thetai
-        self.TM_wavenum      = tm_wavenum
-        self.TE_wavenum      = te_wavenum
+        self.name              = name
+        self.thetai            = thetai
         self.TM_single_beam_raw = tm_single_beam
         self.TE_single_beam_raw = te_single_beam
 
@@ -279,23 +289,10 @@ class SinglePassMeas(MeasurementBase):
             print("TP12:", Tp12, "Ts12:", Ts12)
             _, Tp23, _, Ts23, _, _, _ = calculate_Fresnels(theta_t12, n2, n3)
             print("TP23:", Tp23, "Ts23:", Ts23)
-            self.TM_single_beam = tm_single_beam / (Tp12 * Tp23)
-            self.TE_single_beam = te_single_beam / (Ts12 * Ts23)
-        else:
-            self.TM_single_beam = tm_single_beam
-            self.TE_single_beam = te_single_beam
+            tm_single_beam = tm_single_beam / (Tp12 * Tp23)
+            te_single_beam = te_single_beam / (Ts12 * Ts23)
 
-        self.TM_masked         = None
-        self.TE_masked         = None
-        self.TM_wavenum_masked = None
-        self.TE_wavenum_masked = None
-
-        if nuextrema is not None:
-            mask = (te_wavenum > nuextrema[0]) & (te_wavenum < nuextrema[1])
-            self.TE_masked         = self.TE_single_beam[mask]
-            self.TM_masked         = self.TM_single_beam[mask]
-            self.TM_wavenum_masked = tm_wavenum[mask]
-            self.TE_wavenum_masked = te_wavenum[mask]
+        self._init_arrays(tm_wavenum, te_wavenum, tm_single_beam, te_single_beam, nuextrema)
 
 
 # ── backwards-compatible wrappers ─────────────────────────────────────────────
